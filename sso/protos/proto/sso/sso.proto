@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package auth;
 
-option go_package = "alex_gorbunov/s_pet/sso";
+option go_package = "alex_gorbunov/s_pet/sso;sso";
 
 service Auth {
     rpc Register(RegisterRequest) returns (RegisterResponse);
