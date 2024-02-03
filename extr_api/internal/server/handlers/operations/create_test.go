@@ -1,10 +1,10 @@
 package operations
 
 import (
-	"alex_gorbunov_exptr_api/internal/http-server/handlers/operations/mocks"
 	"alex_gorbunov_exptr_api/internal/lib/api/response"
 	"alex_gorbunov_exptr_api/internal/lib/logger/handlers/slogdiscard"
 	"alex_gorbunov_exptr_api/internal/models"
+	"alex_gorbunov_exptr_api/internal/server/handlers/operations/mocks"
 	"bytes"
 	"encoding/json"
 	"net/http"

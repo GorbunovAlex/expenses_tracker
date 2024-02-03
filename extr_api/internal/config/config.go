@@ -18,6 +18,7 @@ type HTTPServer struct {
 	Address     string        `yaml:"address" env-default:":3000"`
 	Timeout     time.Duration `yaml:"timeout" env-default:"5s"`
 	IdleTimeout time.Duration `yaml:"idle_timeout" env-default:"60s"`
+	JwtSecret   string        `yaml:"jwt_secret" env-required:"true"`
 }
 
 type Database struct {
