@@ -1,6 +1,8 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 
+import './assets/main.scss';
+
 import { Quasar } from 'quasar'
 
 import '@quasar/extras/roboto-font-latin-ext/roboto-font-latin-ext.css'

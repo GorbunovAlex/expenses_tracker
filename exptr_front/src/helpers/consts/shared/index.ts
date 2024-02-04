@@ -1,0 +1,1 @@
+export { PAGE_LINKS } from './page';
