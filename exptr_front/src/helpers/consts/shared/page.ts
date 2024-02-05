@@ -1,4 +1,4 @@
-import type { IPageLink } from "@/helpers/types";
+import { PageAction, type IPageAction, type IPageLink } from "@/helpers/types";
 
 export const PAGE_LINKS: IPageLink[] = [
   {
@@ -14,3 +14,10 @@ export const PAGE_LINKS: IPageLink[] = [
     to: "/history",
   }
 ];
+
+export const PAGE_ACTIONS: IPageAction[] = [
+  {
+    label: "Logout",
+    action: PageAction.LOGOUT
+  }    
+]

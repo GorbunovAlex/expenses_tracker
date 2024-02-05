@@ -1,13 +1,15 @@
-<script setup lang='ts'>
-import { PAGE_LINKS } from '@/helpers/consts';
+<script setup lang="ts">
+import { useRoute } from 'vue-router'
+import { date } from 'quasar'
+
+import { PAGE_LINKS, PAGE_ACTIONS } from '@/helpers/consts'
+
+const route = useRoute()
 </script>
 
 <template>
-<q-layout view="lHh lpR lFf" class="default-layout">
-    <q-drawer
-      show-if-above
-      :width="50"
-    >
+  <q-layout view="lHh lpR lFf" class="default-layout">
+    <q-drawer show-if-above :width="50">
       <q-list class="drawer-list">
         <q-item
           v-for="item in PAGE_LINKS"
@@ -18,7 +20,11 @@ import { PAGE_LINKS } from '@/helpers/consts';
         >
           <q-item-section>
             <q-item-label>
-              <q-icon size="20px" :name="item.icon" />
+              <q-icon
+                size="20px"
+                :name="item.icon"
+                :color="route.path === item.to ? 'warning' : 'white'"
+              />
             </q-item-label>
           </q-item-section>
         </q-item>
@@ -26,7 +32,21 @@ import { PAGE_LINKS } from '@/helpers/consts';
     </q-drawer>
 
     <q-page-container class="flex items-center justify-center">
-      <q-page class="page">
+      <q-page class="page q-pa-md">
+        <div class="flex items-center justify-between text-h6 text-white">
+          {{ route.name }}
+          <div class="flex items-center gap-8 text-white">
+            {{ date.formatDate(new Date(), 'DD/MM/YYYY') }}
+            <q-separator vertical size="2px" color="white" />
+            <q-btn-dropdown flat rounded dense size="15px" dropdown-icon="settings">
+              <q-list class="page__settings-list">
+                <q-item v-for="item in PAGE_ACTIONS" :key="item.label" clickable>
+                  <q-item-section>{{ item.label }}</q-item-section>
+                </q-item>
+              </q-list>
+            </q-btn-dropdown>
+          </div>
+        </div>
         <router-view />
       </q-page>
     </q-page-container>
@@ -41,12 +61,12 @@ import { PAGE_LINKS } from '@/helpers/consts';
 .q-drawer {
   height: 300px;
   position: fixed;
-  background: rgba( 242, 192, 55, 0.2 );
-  box-shadow: 0 8px 32px 0 rgba( 31, 38, 135, 0.37 );
-  backdrop-filter: blur( 7.5px );
-  -webkit-backdrop-filter: blur( 7.5px );
+  background: rgba(242, 192, 55, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  backdrop-filter: blur(7.5px);
+  -webkit-backdrop-filter: blur(7.5px);
   border-radius: 10px;
-  border: 1px solid rgba( 255, 255, 255, 0.18 );
+  border: 1px solid rgba(255, 255, 255, 0.18);
   top: 35%;
   left: 30px;
   border-radius: 10px;
@@ -66,16 +86,21 @@ import { PAGE_LINKS } from '@/helpers/consts';
 
 .page {
   min-height: 80vh !important;
-  height: 50%;
   width: 80%;
-  padding: 20px;
-  background: rgba( 242, 192, 55, 0.4 );
-  box-shadow: 0 8px 32px 0 rgba( 31, 38, 135, 0.37 );
-  backdrop-filter: blur( 10px );
-  -webkit-backdrop-filter: blur( 10px );
+  background: rgba(242, 192, 55, 0.4);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-radius: 10px;
-  border: 1px solid rgba( 255, 255, 255, 0.18 );
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border: 1px solid $warning;
   border-radius: 10px;
+
+  &__settings-list {
+    background: rgba(242, 192, 55, 0.4);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
 }
 </style>

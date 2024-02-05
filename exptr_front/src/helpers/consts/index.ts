@@ -1,1 +1,1 @@
-export { PAGE_LINKS } from './shared'
+export { PAGE_LINKS, PAGE_ACTIONS } from './shared'
