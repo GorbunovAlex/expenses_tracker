@@ -111,7 +111,6 @@ const rows = [
 <template>
   <div class="row gap-16 q-pa-md">
     <div class="col">
-      <BarsChart />
       <DoughtChart />
     </div>
     <div class="col">

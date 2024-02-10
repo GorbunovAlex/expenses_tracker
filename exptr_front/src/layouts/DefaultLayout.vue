@@ -47,6 +47,7 @@ const route = useRoute()
             </q-btn-dropdown>
           </div>
         </div>
+        <q-separator class="q-ma-sm" color="white" />
         <router-view />
       </q-page>
     </q-page-container>
