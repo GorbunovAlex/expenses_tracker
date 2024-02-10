@@ -1,0 +1,1 @@
+export { TABLE_COLUMNS } from './table'
