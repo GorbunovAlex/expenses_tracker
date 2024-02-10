@@ -33,7 +33,7 @@ const route = useRoute()
 
     <q-page-container class="flex items-center justify-center">
       <q-page class="page q-pa-md">
-        <div class="flex items-center justify-between text-h6 text-white">
+        <div class="flex items-center justify-between text-h5 text-white">
           {{ route.name }}
           <div class="flex items-center gap-8 text-white">
             {{ date.formatDate(new Date(), 'DD/MM/YYYY') }}
