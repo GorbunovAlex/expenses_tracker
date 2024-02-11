@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func Router(log *slog.Logger, storage *postgres.Storage) http.Handler {
@@ -28,6 +29,9 @@ func Router(log *slog.Logger, storage *postgres.Storage) http.Handler {
 			r.Post("/operations/new", operations.New(log, storage))
 		})
 
+		r.Get("/swagger/*", httpSwagger.Handler(
+			httpSwagger.URL("/swagger/doc.json"), //The url pointing to API definition
+		))
 		r.Post("/users/signup", users.Signup(log, storage))
 		r.Post("/users/login", users.Login(log, storage))
 	})
