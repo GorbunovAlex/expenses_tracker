@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { TABLE_COLUMNS } from '@/helpers/consts'
-
-import BarsChart from '@/components/analytics/BarsChart.vue'
 import DoughtChart from '@/components/analytics/DoughtnutChart.vue'
 
 const rows = [

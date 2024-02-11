@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { Doughnut } from 'vue-chartjs'
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
+import { onMounted, ref } from 'vue'
+import { Chart, registerables } from 'chart.js'
 
-ChartJS.register(ArcElement, Tooltip, Legend)
+Chart.register(...registerables)
 
+const doughnut = ref<HTMLCanvasElement | null>(null)
 const chartData = ref({
   labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
   datasets: [
@@ -38,8 +38,21 @@ const chartOptions = ref({
     }
   }
 })
+
+onMounted(() => {
+  if (doughnut.value) {
+    const ctx = doughnut.value.getContext('2d')
+    if (ctx) {
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: chartData.value,
+        options: chartOptions.value
+      })
+    }
+  }
+})
 </script>
 
 <template>
-  <Doughnut id="chart" :options="chartOptions" :data="chartData" />
+  <canvas ref="doughnut" />
 </template>
