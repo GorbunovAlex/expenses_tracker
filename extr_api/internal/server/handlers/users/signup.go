@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/go-playground/validator"
@@ -21,9 +22,24 @@ type SignupHandler interface {
 	GetUserByEmail(email string) (*models.User, error)
 }
 
-func Signup(log *slog.Logger, signupHandler SignupHandler) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+// Signup godoc
+// @Summary      Signup
+// @Description  Signup
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param				 data body  models.SignUpRequest  true  "signup request"
+// @Success      200  {object}  response.Response
+// @Failure      400  {string}  string "empty request body"
+// @Failure      404  {string}  string "user already exists"
+// @Failure      500  {string}  string "server error"
+// @Router       /users/signup [post]
+func Signup(log *slog.Logger, signupHandler SignupHandler) gin.HandlerFunc {
+	return func(c *gin.Context) {
 		const op = "handlers.users.signup.Signup"
+
+		r := c.Request
+		w := c.Writer
 
 		log = log.With(slog.String("op", op), slog.String("request_id", middleware.GetReqID(r.Context())))
 

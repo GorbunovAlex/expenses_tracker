@@ -7,8 +7,8 @@ import (
 	"errors"
 	"io"
 	"log/slog"
-	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/go-playground/validator/v10"
@@ -19,9 +19,23 @@ type CreateOperationHandler interface {
 	CreateOperation(models.CreateOperationRequest) error
 }
 
-func New(log *slog.Logger, createOperationHandler CreateOperationHandler) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+// New godoc
+// @Summary      Create new operation
+// @Description  Create new operation
+// @Tags         operations
+// @Accept       json
+// @Produce      json
+// @Param        data body models.CreateOperationRequest  true  "Create operation"
+// @Success      200  {object}  models.CreateOperationResponse
+// @Failure      400  {string} 	string "empty request body"
+// @Failure      500  {string}  string "server error"
+// @Router       /operations/new [post]
+func New(log *slog.Logger, createOperationHandler CreateOperationHandler) gin.HandlerFunc {
+	return func(c *gin.Context) {
 		const op = "handlers.operations.create.CreateOperation"
+
+		r := c.Request
+		w := c.Writer
 
 		log = log.With(slog.String("op", op), slog.String("request_id", middleware.GetReqID(r.Context())))
 

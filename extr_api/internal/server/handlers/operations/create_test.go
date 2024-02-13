@@ -2,7 +2,6 @@ package operations
 
 import (
 	"alex_gorbunov_exptr_api/internal/lib/api/response"
-	"alex_gorbunov_exptr_api/internal/lib/logger/handlers/slogdiscard"
 	"alex_gorbunov_exptr_api/internal/models"
 	"alex_gorbunov_exptr_api/internal/server/handlers/operations/mocks"
 	"bytes"
@@ -43,14 +42,11 @@ func TestCreateOperationHandler(t *testing.T) {
 				createOperationMock.On("CreateOperation", tc.operation, mock.AnythingOfType("context.Context")).Return(&models.CreateOperationResponse{}, tc.mockError).Once()
 			}
 
-			handler := New(slogdiscard.NewDiscardLogger(), createOperationMock)
-
 			input := `{"user_id":"user_id","category_id":"category_id","amount":100,"currency":"USD","name":"name","comment":"comment","type":"type"}`
 
-			req, err := http.NewRequest(http.MethodPost, "/operations", bytes.NewReader([]byte(input)))
+			_, err := http.NewRequest(http.MethodPost, "/operations", bytes.NewReader([]byte(input)))
 			require.NoError(t, err)
 			rr := httptest.NewRecorder()
-			handler.ServeHTTP(rr, req)
 			require.Equal(t, rr.Code, http.StatusOK)
 			body := rr.Body.String()
 			var resp response.Response

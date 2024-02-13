@@ -11,6 +11,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/go-playground/validator"
@@ -20,9 +21,24 @@ type LoginHandler interface {
 	GetUserByEmail(email string) (*models.User, error)
 }
 
-func Login(log *slog.Logger, loginHandler LoginHandler) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+// Login godoc
+// @Summary      Login
+// @Description  Login
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        data body  models.LoginRequest  true  "login request"
+// @Success      200  {object}  models.LoginResponse
+// @Failure      400  {string} 	string "empty request body"
+// @Failure      404  {string}  string "wrong email or password"
+// @Failure      500  {string}  string "server error"
+// @Router       /users/login [post]
+func Login(log *slog.Logger, loginHandler LoginHandler) gin.HandlerFunc {
+	return func(c *gin.Context) {
 		const op = "handlers.users.login.Login"
+
+		r := c.Request
+		w := c.Writer
 
 		log = log.With(slog.String("op", op), slog.String("request_id", middleware.GetReqID(r.Context())))
 

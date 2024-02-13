@@ -1,44 +1,39 @@
 package logger
 
 import (
-	"net/http"
+	"log/slog"
 	"time"
 
-	"log/slog"
-
-	"github.com/go-chi/chi/v5/middleware"
+	"github.com/gin-gonic/gin"
 )
 
-func New(log *slog.Logger) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
+func New(log *slog.Logger) gin.HandlerFunc {
+	return func(c *gin.Context) {
 		log := log.With(
 			slog.String("component", "middleware/logger"),
 		)
 
 		log.Info("logger middleware enabled")
 
-		fn := func(w http.ResponseWriter, r *http.Request) {
-			entry := log.With(
-				slog.String("method", r.Method),
-				slog.String("path", r.URL.Path),
-				slog.String("remote_addr", r.RemoteAddr),
-				slog.String("user_agent", r.UserAgent()),
-				slog.String("request_id", middleware.GetReqID(r.Context())),
+		entry := log.With(
+			slog.String("method", c.Request.Method),
+			slog.String("path", c.Request.RequestURI),
+			slog.String("remote_addr", c.Request.RemoteAddr),
+			slog.String("user_agent", c.Request.UserAgent()),
+			slog.String("request_id", c.Request.Header.Get("X-Request-Id")),
+		)
+
+		ww := c.Writer
+
+		t1 := time.Now()
+		defer func() {
+			entry.Info("request",
+				slog.Int("status", ww.Status()),
+				slog.Int("bytes", ww.Size()),
+				slog.String("duration", time.Since(t1).String()),
 			)
-			ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
+		}()
 
-			t1 := time.Now()
-			defer func() {
-				entry.Info("request",
-					slog.Int("status", ww.Status()),
-					slog.Int("bytes", ww.BytesWritten()),
-					slog.String("duration", time.Since(t1).String()),
-				)
-			}()
-
-			next.ServeHTTP(ww, r)
-		}
-
-		return http.HandlerFunc(fn)
+		c.Next()
 	}
 }

@@ -3,29 +3,31 @@ package token
 import (
 	"alex_gorbunov_exptr_api/pkg/jwt"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
-func TokenValidationMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if _, ok := r.Header["Bearer"]; !ok {
-			w.WriteHeader(http.StatusUnauthorized)
+func TokenValidationMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if _, ok := c.Request.Header["Bearer"]; !ok {
+			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 
-		token := r.Header.Get("Bearer")
+		token := c.Request.Header.Get("Bearer")
 		check, err := jwt.ValidateToken(token)
 
 		if err != nil {
-			w.WriteHeader(http.StatusUnauthorized)
+			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 
 		if !check {
-			w.WriteHeader(http.StatusUnauthorized)
+			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 
-		w.WriteHeader(http.StatusOK)
-		next.ServeHTTP(w, r)
-	})
+		c.Writer.WriteHeader(http.StatusOK)
+		c.Next()
+	}
 }

@@ -1,6 +1,7 @@
 package router
 
 import (
+	_ "alex_gorbunov_exptr_api/docs"
 	"alex_gorbunov_exptr_api/internal/server/handlers/operations"
 	"alex_gorbunov_exptr_api/internal/server/handlers/users"
 	mLogger "alex_gorbunov_exptr_api/internal/server/middleware/logger"
@@ -9,32 +10,29 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	httpSwagger "github.com/swaggo/http-swagger"
+	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func Router(log *slog.Logger, storage *postgres.Storage) http.Handler {
-	router := chi.NewRouter()
+	router := gin.Default()
 
-	router.Use(middleware.RequestID)
 	router.Use(mLogger.New(log))
-	router.Use(middleware.Recoverer)
-	router.Use(middleware.URLFormat)
+	router.Use(gin.Recovery())
 
-	router.Route("/api/v1", func(r chi.Router) {
-		r.Group(func(r chi.Router) {
-			r.Use(token.TokenValidationMiddleware)
+	v1 := router.Group("/api/v1")
+	{
+		auth := v1.Group("/")
+		auth.Use(token.TokenValidationMiddleware())
+		{
+			auth.POST("/operations/new", operations.New(log, storage))
+		}
+		v1.POST("/users/signup", users.Signup(log, storage))
+		v1.POST("/users/login", users.Login(log, storage))
+	}
 
-			r.Post("/operations/new", operations.New(log, storage))
-		})
-
-		r.Get("/swagger/*", httpSwagger.Handler(
-			httpSwagger.URL("/swagger/doc.json"), //The url pointing to API definition
-		))
-		r.Post("/users/signup", users.Signup(log, storage))
-		r.Post("/users/login", users.Login(log, storage))
-	})
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	return router
 }
