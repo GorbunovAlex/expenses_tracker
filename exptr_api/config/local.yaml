@@ -1,0 +1,12 @@
+env: "local" # local, dev, prod
+http_server:
+  address: "localhost:8080"
+  timeout: 5s
+  idle_timeout: 60s
+  jwt_secret: ")3ao5]XDYjjDe07w4XF64w5zb!o^M9Xg8'm]ra]_O}dG[P$a=o"
+database:
+  host: "localhost"
+  port: 5432
+  name: "exptr"
+  user: "postgres"
+  password: "QJ552308NAv28"
