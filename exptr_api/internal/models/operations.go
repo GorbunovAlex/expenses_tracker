@@ -18,7 +18,7 @@ type Operation struct {
 	UpdatedAt  string `json:"updated_at"`
 }
 
-type CreateOperationRequest struct {
+type OperationRequest struct {
 	UserID     string    `json:"user_id" validate:"required"`
 	CategoryID string    `json:"category_id" validate:"required"`
 	Amount     int       `json:"amount" validate:"required"`
@@ -37,4 +37,8 @@ type CreateOperationResponse struct {
 type GetOperationsByUserIDResponse struct {
 	response.Response
 	Operations []Operation `json:"operations"`
+}
+
+type UpdateOperationResponse struct {
+	response.Response
 }

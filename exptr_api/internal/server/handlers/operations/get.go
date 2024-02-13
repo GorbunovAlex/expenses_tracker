@@ -17,6 +17,16 @@ type GetOperationHandler interface {
 	GetUserIDByToken(token string) (int, error)
 }
 
+// GetAll godoc
+// @Summary      Get all current user operations
+// @Description  Get all current user operations
+// @Tags         operations
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  models.GetOperationsByUserIDResponse
+// @Failure      400  {string} 	string "empty request body"
+// @Failure      500  {string}  string "server error"
+// @Router       /operations [get]
 func GetAll(log *slog.Logger, getAllOperationHandler GetOperationHandler) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		const op = "handlers.operations.get.GetOperationsByUserID"

@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func (s *Storage) CreateOperation(operation models.CreateOperationRequest) error {
+func (s *Storage) CreateOperation(operation models.OperationRequest) error {
 	const fn = "storage.postgresql.CreateOperation"
 
 	query := `INSERT INTO operations (user_id, category_id, amount, currency, name, comment, type, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
@@ -17,11 +17,11 @@ func (s *Storage) CreateOperation(operation models.CreateOperationRequest) error
 	return nil
 }
 
-func (s *Storage) UpdateOperation(operation *models.Operation) error {
+func (s *Storage) UpdateOperation(id int, operation *models.OperationRequest) error {
 	const fn = "storage.postgresql.UpdateOperation"
 
-	query := `UPDATE operations SET user_id = $1, category_id = $2, amount = $3, currency = $4, name = $5, comment = $6, type = $7, updated_at = $8 WHERE id = $9`
-	_, err := s.db.Exec(query, operation.UserID, operation.CategoryID, operation.Amount, operation.Currency, operation.Name, operation.Comment, operation.Type, operation.UpdatedAt, operation.ID)
+	query := `UPDATE operations SET category_id = $1, amount = $2, currency = $3, name = $4, comment = $5, type = $6, updated_at = $7 WHERE id = $8`
+	_, err := s.db.Exec(query, operation.CategoryID, operation.Amount, operation.Currency, operation.Name, operation.Comment, operation.Type, operation.UpdatedAt, id)
 	if err != nil {
 		return fmt.Errorf("%s: %w", fn, err)
 	}

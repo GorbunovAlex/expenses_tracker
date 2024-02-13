@@ -14,7 +14,7 @@ type CreateOperationHandler struct {
 }
 
 // CreateOperation provides a mock function with given fields: _a0
-func (_m *CreateOperationHandler) CreateOperation(_a0 models.CreateOperationRequest) error {
+func (_m *CreateOperationHandler) CreateOperation(_a0 models.OperationRequest) error {
 	ret := _m.Called(_a0)
 
 	if len(ret) == 0 {
@@ -22,7 +22,7 @@ func (_m *CreateOperationHandler) CreateOperation(_a0 models.CreateOperationRequ
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(models.CreateOperationRequest) error); ok {
+	if rf, ok := ret.Get(0).(func(models.OperationRequest) error); ok {
 		r0 = rf(_a0)
 	} else {
 		r0 = ret.Error(0)

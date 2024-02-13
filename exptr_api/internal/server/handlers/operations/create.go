@@ -17,7 +17,7 @@ import (
 
 //go:generate mockery --name=CreateOperationHandler
 type CreateOperationHandler interface {
-	CreateOperation(models.CreateOperationRequest) error
+	CreateOperation(models.OperationRequest) error
 }
 
 // New godoc
@@ -40,7 +40,7 @@ func New(log *slog.Logger, createOperationHandler CreateOperationHandler) gin.Ha
 
 		log = log.With(slog.String("op", op), slog.String("request_id", middleware.GetReqID(r.Context())))
 
-		var req models.CreateOperationRequest
+		var req models.OperationRequest
 
 		err := render.DecodeJSON(r.Body, &req)
 

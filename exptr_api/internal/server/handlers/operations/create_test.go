@@ -17,13 +17,13 @@ import (
 func TestCreateOperationHandler(t *testing.T) {
 	cases := []struct {
 		name      string
-		operation models.CreateOperationRequest
+		operation models.OperationRequest
 		respError string
 		mockError error
 	}{
 		{
 			name: "success",
-			operation: models.CreateOperationRequest{
+			operation: models.OperationRequest{
 				UserID:     "user_id",
 				CategoryID: "category_id",
 				Amount:     100,
