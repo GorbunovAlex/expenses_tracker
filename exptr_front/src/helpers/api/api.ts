@@ -1,5 +1,8 @@
-// ApiService class in Singleton pattern to handle all API calls with Axios library and interceptros authentification
 import axios, { type AxiosInstance } from 'axios';
+
+import { RequestMethod } from '@/helpers/types';
+import ErrorHandler from '@/helpers/funcs/error-handler';
+// import { getToken } from "@/helpers/funcs/auth-utils";
 
 class ApiService {
   private static instance: ApiService;
@@ -12,31 +15,6 @@ class ApiService {
         'Content-Type': 'application/json',
       },
     });
-
-    this.axiosInstance.interceptors.request.use(
-      (config: any) => {
-        const token = localStorage.getItem('token');
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-      },
-      (error: any) => {
-        return Promise.reject(error);
-      }
-    );
-
-    this.axiosInstance.interceptors.response.use(
-      (response: any) => {
-        return response;
-      },
-      (error: any) => {
-        if (error.response.status === 401) {
-          store.dispatch(logout());
-        }
-        return Promise.reject(error);
-      }
-    );
   }
 
   public static getInstance(): ApiService {
@@ -47,9 +25,18 @@ class ApiService {
     return ApiService.instance;
   }
 
-  public getAxiosInstance() {
-    return this.axiosInstance;
+  public static async request<T>(type: RequestMethod, url: string, data: T) {
+    try {
+      return await ApiService.instance.axiosInstance.request({
+        method: type,
+        url,
+        data,
+      });
+    } catch (error) {
+      new ErrorHandler(error as Error).handleError()
+      return error;
+    }
   }
 }
 
-export default ApiService;
+export default ApiService.getInstance();
