@@ -28,7 +28,7 @@ func Update(log *slog.Logger, updateOperationHandler UpdateOperationHandler) gin
 
 		log = log.With(slog.String("op", op), slog.String("request_id", middleware.GetReqID(r.Context())))
 
-		param := c.Request.URL.Query().Get("id")
+		param := c.Params.ByName("id")
 		if param == "" {
 			log.Error("empty id")
 			w.WriteHeader(http.StatusBadRequest)
