@@ -27,6 +27,7 @@ func Router(log *slog.Logger, storage *postgres.Storage) http.Handler {
 		auth.Use(token.TokenValidationMiddleware())
 		{
 			auth.POST("/operations/new", operations.New(log, storage))
+			auth.GET("/operations", operations.GetAll(log, storage))
 		}
 		v1.POST("/users/signup", users.Signup(log, storage))
 		v1.POST("/users/login", users.Login(log, storage))

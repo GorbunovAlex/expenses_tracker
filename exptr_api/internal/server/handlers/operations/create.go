@@ -7,6 +7,7 @@ import (
 	"errors"
 	"io"
 	"log/slog"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-chi/chi/v5/middleware"
@@ -45,12 +46,14 @@ func New(log *slog.Logger, createOperationHandler CreateOperationHandler) gin.Ha
 
 		if errors.Is(err, io.EOF) {
 			log.Error("empty request body")
+			w.WriteHeader(http.StatusBadRequest)
 			render.JSON(w, r, response.Error("empty request body"))
 			return
 		}
 
 		if err != nil {
 			log.Error("failed to decode request", sl.Error(err))
+			w.WriteHeader(http.StatusBadRequest)
 			render.JSON(w, r, response.Error("failed to decode request"))
 			return
 		}
@@ -59,9 +62,8 @@ func New(log *slog.Logger, createOperationHandler CreateOperationHandler) gin.Ha
 
 		if err := validator.New().Struct(req); err != nil {
 			validateErr := err.(validator.ValidationErrors)
-
 			log.Error("validation failed", sl.Error(err))
-
+			w.WriteHeader(http.StatusBadRequest)
 			render.JSON(w, r, response.Error(validateErr.Error()))
 
 			return
@@ -71,6 +73,7 @@ func New(log *slog.Logger, createOperationHandler CreateOperationHandler) gin.Ha
 
 		if err != nil {
 			log.Error("failed to create operation", sl.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
 			render.JSON(w, r, response.Error("failed to create operation"))
 			return
 		}

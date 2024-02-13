@@ -74,7 +74,7 @@ func GetSignedToken() (string, error) {
 	cfg := config.MustLoad()
 
 	claimsMap := map[string]string{
-		"aud": "frontend.epxtr",
+		"aud": "frontend.exptr",
 		"iss": "backend.exptr",
 		"exp": fmt.Sprintf("%d", time.Now().Add(time.Hour).Unix()),
 	}

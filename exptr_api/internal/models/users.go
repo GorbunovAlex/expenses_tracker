@@ -6,7 +6,7 @@ import (
 )
 
 type User struct {
-	ID        string    `json:"id"`
+	ID        int       `json:"id"`
 	Email     string    `json:"email"`
 	Password  string    `json:"password"`
 	CreatedAt time.Time `json:"created_at"`
@@ -26,4 +26,11 @@ type LoginRequest struct {
 type LoginResponse struct {
 	Token string `json:"token"`
 	response.Response
+}
+
+type UserSession struct {
+	ID        string    `json:"id"`
+	UserID    string    `json:"user_id"`
+	CreatedAt time.Time `json:"created_at"`
+	Token     string    `json:"token"`
 }

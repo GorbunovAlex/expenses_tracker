@@ -44,7 +44,7 @@ func (s *Storage) GetOperationByID(id string) (*models.Operation, error) {
 	return &operation, nil
 }
 
-func (s *Storage) GetOperationsByUserID(userID string) ([]models.Operation, error) {
+func (s *Storage) GetOperationsByUserID(userID int) ([]models.Operation, error) {
 	const fn = "storage.postgresql.GetOperationsByUserID"
 
 	query := `SELECT id, user_id, category_id, amount, currency, name, comment, type, created_at, updated_at FROM operations WHERE user_id = $1`

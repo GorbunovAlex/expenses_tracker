@@ -6,16 +6,16 @@ import (
 )
 
 type Operation struct {
-	ID         string    `json:"id"`
-	UserID     string    `json:"user_id"`
-	CategoryID string    `json:"category_id"`
-	Amount     int       `json:"amount"`
-	Currency   string    `json:"currency"`
-	Name       string    `json:"name"`
-	Comment    string    `json:"comment"`
-	Type       string    `json:"type"`
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
+	ID         string `json:"id"`
+	UserID     string `json:"user_id"`
+	CategoryID string `json:"category_id"`
+	Amount     int    `json:"amount"`
+	Currency   string `json:"currency"`
+	Name       string `json:"name"`
+	Comment    string `json:"comment"`
+	Type       string `json:"type"`
+	CreatedAt  string `json:"created_at"`
+	UpdatedAt  string `json:"updated_at"`
 }
 
 type CreateOperationRequest struct {
@@ -32,4 +32,9 @@ type CreateOperationRequest struct {
 
 type CreateOperationResponse struct {
 	response.Response
+}
+
+type GetOperationsByUserIDResponse struct {
+	response.Response
+	Operations []Operation `json:"operations"`
 }

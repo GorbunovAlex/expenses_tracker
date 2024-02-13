@@ -19,6 +19,7 @@ import (
 
 type LoginHandler interface {
 	GetUserByEmail(email string) (*models.User, error)
+	SetUserSession(userID int, token string) error
 }
 
 // Login godoc
@@ -89,6 +90,14 @@ func Login(log *slog.Logger, loginHandler LoginHandler) gin.HandlerFunc {
 		token, err := jwt.GetSignedToken()
 		if err != nil {
 			log.Error("failed to get signed token", sl.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			render.JSON(w, r, response.Error("server error"))
+			return
+		}
+
+		err = loginHandler.SetUserSession(user.ID, token)
+		if err != nil {
+			log.Error("failed to set user session", sl.Error(err))
 			w.WriteHeader(http.StatusInternalServerError)
 			render.JSON(w, r, response.Error("server error"))
 			return
