@@ -97,3 +97,15 @@ func (s *Storage) DeleteUserSession(userID int) error {
 
 	return nil
 }
+
+func (s *Storage) DeleteOutdatedSessions() error {
+	const fn = "storage.postgresql.deleteOutdatedSessions"
+
+	query := `DELETE FROM user_sessions WHERE created_date < $1`
+	_, err := s.db.Exec(query, time.Now().Add(-time.Hour*1))
+	if err != nil {
+		return fmt.Errorf("%s: %w", fn, err)
+	}
+
+	return nil
+}

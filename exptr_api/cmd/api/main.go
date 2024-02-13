@@ -2,12 +2,15 @@ package main
 
 import (
 	"alex_gorbunov_exptr_api/internal/config"
+	"alex_gorbunov_exptr_api/internal/lib/crons"
 	"alex_gorbunov_exptr_api/internal/lib/logger/sl"
 	"alex_gorbunov_exptr_api/internal/server/router"
 	"alex_gorbunov_exptr_api/internal/storage/postgres"
 	"log/slog"
 	"net/http"
 	"os"
+
+	"github.com/robfig/cron/v3"
 )
 
 // @title           Swagger EXPTR API
@@ -34,6 +37,8 @@ func main() {
 
 	log := sl.SetupLogger(cfg.Env)
 
+	c := cron.New()
+
 	log.Info("starting server", slog.String("env", cfg.Env))
 
 	storage, err := postgres.NewStorage()
@@ -55,4 +60,8 @@ func main() {
 	if err := srv.ListenAndServe(); err != nil {
 		log.Error("server stopped", sl.Error(err))
 	}
+
+	c.AddFunc("@hourly", func() {
+		crons.DeleteOutdatedSessions(storage, log)
+	})
 }
