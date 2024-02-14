@@ -1,14 +1,20 @@
 import Axios, { AxiosError, type AxiosRequestConfig } from 'axios';
 
 import ErrorHandler from '@/helpers/funcs/error-handler';
+import { getToken } from '../funcs/auth-utils';
  
- export const AXIOS_INSTANCE = Axios.create({ baseURL: import.meta.env.API_PATH ?? 'http://localhost:3000/v1/api/' }); 
+ export const AXIOS_INSTANCE = Axios.create({ baseURL: '/api/v1/' }); 
 
  export const instance = <T>(
   config: AxiosRequestConfig,
   options?: AxiosRequestConfig,
 ): Promise<T> => {
   const source = Axios.CancelToken.source();
+  if (config.url && !config.url.includes('users')) {
+    config.headers = {
+      "Bearer": getToken(),
+    };
+  }
   const promise = AXIOS_INSTANCE({
     ...config,
     ...options,

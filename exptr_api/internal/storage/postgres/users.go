@@ -35,8 +35,14 @@ func (s *Storage) SetUserSession(userID int, token string) error {
 	const fn = "storage.postgresql.setUserSession"
 
 	_, err := s.GetUserSession(userID)
+	fmt.Println(err)
 	if err == nil {
-		return fmt.Errorf("%s: user already has a session", fn)
+		query := `UPDATE user_sessions SET token = $1, created_date = $2 WHERE user_id = $3`
+		_, err = s.db.Exec(query, token, time.Now(), userID)
+		if err != nil {
+			return fmt.Errorf("%s: %w", fn, err)
+		}
+		return nil
 	}
 
 	query := `INSERT INTO user_sessions (user_id, created_date, token) VALUES ($1, $2, $3)`

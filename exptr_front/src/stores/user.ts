@@ -7,7 +7,7 @@ export const useUserStore = defineStore('user', () => {
   async function login(email: string, password: string) {
     try {
       const response = await postUsersLogin({ email, password })
-      if (response.status === "ok") {
+      if (response.status === "OK") {
         setToken(response.token);
       }
     } catch (error) {

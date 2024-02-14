@@ -6,18 +6,8 @@ import { useUserStore } from '@/stores/user'
 
 const userStore = useUserStore()
 
-const mockAuth = () => {
-  const name = prompt('email')
-  const pass = prompt('password')
-  if (!name || !pass) {
-    mockAuth()
-  } else {
-    userStore.login(name, pass)
-  }
-}
-
-onMounted(() => {
-  mockAuth()
+onMounted(async () => {
+  await userStore.login('test@gmail.com', 'password')
 })
 </script>
 

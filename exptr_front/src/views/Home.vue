@@ -25,8 +25,8 @@ const rows = [
 
 onMounted(async () => {
   await Promise.all([operationsStore.fetchOperations(), categoriesStore.fetchCategories()])
-  console.log('operationsStore.operations', operationsStore.operations)
-  console.log('categoriesStore.categories', categoriesStore.categories)
+  console.log('Operations:', operationsStore.operations)
+  console.log('Categories:', categoriesStore.categories)
 })
 </script>
 

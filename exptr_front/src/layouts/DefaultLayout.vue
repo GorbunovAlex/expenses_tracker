@@ -36,7 +36,9 @@ const route = useRoute()
         <div class="flex items-center justify-between text-h5 text-white">
           {{ route.name }}
           <div class="flex items-center gap-8 text-white">
-            {{ date.formatDate(new Date(), 'DD/MM/YYYY') }}
+            <span class="text-body1">
+              {{ date.formatDate(new Date(), 'DD/MM/YYYY') }}
+            </span>
             <q-separator vertical size="2px" color="white" />
             <q-btn-dropdown flat rounded dense size="15px" dropdown-icon="settings">
               <q-list class="page__settings-list">

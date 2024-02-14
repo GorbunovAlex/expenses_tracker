@@ -11,6 +11,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -21,6 +22,7 @@ func Router(log *slog.Logger, storage *postgres.Storage) http.Handler {
 
 	router.Use(mLogger.New(log))
 	router.Use(gin.Recovery())
+	router.Use(cors.Default())
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -30,7 +32,7 @@ func Router(log *slog.Logger, storage *postgres.Storage) http.Handler {
 		auth.Use(token.TokenValidationMiddleware())
 		{
 			auth.POST("/operations/new", operations.New(log, storage))
-			auth.GET("/operations", operations.GetAll(log, storage))
+			auth.GET("/operations/", operations.GetAll(log, storage))
 			auth.PUT("/operations/:id", operations.Update(log, storage))
 			auth.DELETE("/operations/:id", operations.Delete(log, storage))
 
