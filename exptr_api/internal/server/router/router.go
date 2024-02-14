@@ -2,6 +2,7 @@ package router
 
 import (
 	_ "alex_gorbunov_exptr_api/docs"
+	"alex_gorbunov_exptr_api/internal/server/handlers/categories"
 	"alex_gorbunov_exptr_api/internal/server/handlers/operations"
 	"alex_gorbunov_exptr_api/internal/server/handlers/users"
 	mLogger "alex_gorbunov_exptr_api/internal/server/middleware/logger"
@@ -21,6 +22,8 @@ func Router(log *slog.Logger, storage *postgres.Storage) http.Handler {
 	router.Use(mLogger.New(log))
 	router.Use(gin.Recovery())
 
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 	v1 := router.Group("/api/v1")
 	{
 		auth := v1.Group("/")
@@ -31,12 +34,14 @@ func Router(log *slog.Logger, storage *postgres.Storage) http.Handler {
 			auth.PUT("/operations/:id", operations.Update(log, storage))
 			auth.DELETE("/operations/:id", operations.Delete(log, storage))
 
+			auth.GET("/categories", categories.GetAll(log, storage))
+			auth.POST("/categories/new", categories.New(log, storage))
+			auth.PUT("/categories/:id", categories.Update(log, storage))
+			auth.DELETE("/categories/:id", categories.Delete(log, storage))
 		}
 		v1.POST("/users/signup", users.Signup(log, storage))
 		v1.POST("/users/login", users.Login(log, storage))
 	}
-
-	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	return router
 }

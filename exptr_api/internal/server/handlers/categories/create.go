@@ -15,7 +15,7 @@ import (
 )
 
 type CreateCategoryHandler interface {
-	CreateCategory(models.CategoryRequest) error
+	CreateCategory(category *models.CategoryRequest) error
 }
 
 // Create godoc
@@ -65,7 +65,7 @@ func New(log *slog.Logger, createCategoryHandler CreateCategoryHandler) gin.Hand
 			return
 		}
 
-		err = createCategoryHandler.CreateCategory(req)
+		err = createCategoryHandler.CreateCategory(&req)
 
 		if err != nil {
 			log.Error("failed to create category", sl.Error(err))

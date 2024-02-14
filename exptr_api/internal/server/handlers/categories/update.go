@@ -15,7 +15,7 @@ import (
 )
 
 type UpdateCategoryHandler interface {
-	UpdateCategory(models.Category) error
+	UpdateCategory(category *models.Category) error
 }
 
 // Update godoc
@@ -82,7 +82,7 @@ func Update(log *slog.Logger, updateCategoryHandler UpdateCategoryHandler) gin.H
 			UpdatedAt: req.UpdatedAt,
 		}
 
-		err = updateCategoryHandler.UpdateCategory(category)
+		err = updateCategoryHandler.UpdateCategory(&category)
 
 		if err != nil {
 			log.Error("failed to update category", sl.Error(err))
