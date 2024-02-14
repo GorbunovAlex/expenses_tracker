@@ -1,7 +1,53 @@
 basePath: /api/v1
 definitions:
+  models.Category:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      type:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  models.CategoryRequest:
+    properties:
+      created_at:
+        type: string
+      name:
+        type: string
+      type:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  models.CategoryResponse:
+    properties:
+      error:
+        type: string
+      status:
+        type: string
+    type: object
   models.CreateOperationResponse:
     properties:
+      error:
+        type: string
+      status:
+        type: string
+    type: object
+  models.GetCategoriesResponse:
+    properties:
+      categories:
+        items:
+          $ref: '#/definitions/models.Category'
+        type: array
       error:
         type: string
       status:
@@ -129,6 +175,116 @@ info:
   title: Swagger EXPTR API
   version: "1.0"
 paths:
+  /categories/:
+    get:
+      consumes:
+      - application/json
+      description: get all categories
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.GetCategoriesResponse'
+        "400":
+          description: empty request body
+          schema:
+            type: string
+        "500":
+          description: server error
+          schema:
+            type: string
+      summary: get all categories
+      tags:
+      - categories
+  /categories/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete category by id
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: empty request body
+          schema:
+            type: string
+        "500":
+          description: server error
+          schema:
+            type: string
+      summary: Delete category by id
+      tags:
+      - operations
+    put:
+      consumes:
+      - application/json
+      description: update category
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: empty request body
+          schema:
+            type: string
+        "500":
+          description: server error
+          schema:
+            type: string
+      summary: update category
+      tags:
+      - categories
+  /categories/new:
+    post:
+      consumes:
+      - application/json
+      description: create new category
+      parameters:
+      - description: Update category
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.CategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CategoryResponse'
+        "400":
+          description: empty request body
+          schema:
+            type: string
+        "500":
+          description: server error
+          schema:
+            type: string
+      summary: create new category
+      tags:
+      - categories
   /operations:
     get:
       consumes:
