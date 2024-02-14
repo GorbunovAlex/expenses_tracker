@@ -1,6 +1,66 @@
 basePath: /api/v1
 definitions:
-  models.CreateOperationRequest:
+  models.CreateOperationResponse:
+    properties:
+      error:
+        type: string
+      status:
+        type: string
+    type: object
+  models.GetOperationsByUserIDResponse:
+    properties:
+      error:
+        type: string
+      operations:
+        items:
+          $ref: '#/definitions/models.Operation'
+        type: array
+      status:
+        type: string
+    type: object
+  models.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  models.LoginResponse:
+    properties:
+      error:
+        type: string
+      status:
+        type: string
+      token:
+        type: string
+    type: object
+  models.Operation:
+    properties:
+      amount:
+        type: integer
+      category_id:
+        type: string
+      comment:
+        type: string
+      created_at:
+        type: string
+      currency:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      type:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  models.OperationRequest:
     properties:
       amount:
         type: integer
@@ -29,32 +89,6 @@ definitions:
     - type
     - user_id
     type: object
-  models.CreateOperationResponse:
-    properties:
-      error:
-        type: string
-      status:
-        type: string
-    type: object
-  models.LoginRequest:
-    properties:
-      email:
-        type: string
-      password:
-        type: string
-    required:
-    - email
-    - password
-    type: object
-  models.LoginResponse:
-    properties:
-      error:
-        type: string
-      status:
-        type: string
-      token:
-        type: string
-    type: object
   models.SignUpRequest:
     properties:
       email:
@@ -64,6 +98,13 @@ definitions:
     required:
     - email
     - password
+    type: object
+  models.UpdateOperationResponse:
+    properties:
+      error:
+        type: string
+      status:
+        type: string
     type: object
   response.Response:
     properties:
@@ -88,6 +129,86 @@ info:
   title: Swagger EXPTR API
   version: "1.0"
 paths:
+  /operations:
+    get:
+      consumes:
+      - application/json
+      description: Get all current user operations
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.GetOperationsByUserIDResponse'
+        "400":
+          description: empty request body
+          schema:
+            type: string
+        "500":
+          description: server error
+          schema:
+            type: string
+      summary: Get all current user operations
+      tags:
+      - operations
+  /operations/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete operation by id
+      parameters:
+      - description: operation id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: empty id
+          schema:
+            type: string
+        "500":
+          description: server error
+          schema:
+            type: string
+      summary: Delete operation by id
+      tags:
+      - operations
+    put:
+      consumes:
+      - application/json
+      description: Update operation by id
+      parameters:
+      - description: operation id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.UpdateOperationResponse'
+        "400":
+          description: empty request body
+          schema:
+            type: string
+        "500":
+          description: server error
+          schema:
+            type: string
+      summary: Update operation by id
+      tags:
+      - operations
   /operations/new:
     post:
       consumes:
@@ -99,7 +220,7 @@ paths:
         name: data
         required: true
         schema:
-          $ref: '#/definitions/models.CreateOperationRequest'
+          $ref: '#/definitions/models.OperationRequest'
       produces:
       - application/json
       responses:

@@ -1,4 +1,4 @@
-package operations
+package categories
 
 import (
 	"alex_gorbunov_exptr_api/internal/lib/api/response"
@@ -11,33 +11,32 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-chi/render"
-	"github.com/go-playground/validator/v10"
+	"github.com/go-playground/validator"
 )
 
-//go:generate mockery --name=CreateOperationHandler
-type CreateOperationHandler interface {
-	CreateOperation(models.OperationRequest) error
+type CreateCategoryHandler interface {
+	CreateCategory(models.CategoryRequest) error
 }
 
-// New godoc
-// @Summary      Create new operation
-// @Description  Create new operation
-// @Tags         operations
+// Create godoc
+// @Summary      create new category
+// @Description  create new category
+// @Tags         categories
 // @Accept       json
 // @Produce      json
-// @Param        data body models.OperationRequest  true  "Create operation"
-// @Success      200  {object}  models.CreateOperationResponse
+// @Param        data body models.CategoryRequest true "Update category"
+// @Success      200  {object}  models.CategoryResponse
 // @Failure      400  {string} 	string "empty request body"
 // @Failure      500  {string}  string "server error"
-// @Router       /operations/new [post]
-func New(log *slog.Logger, createOperationHandler CreateOperationHandler) gin.HandlerFunc {
+// @Router       /categories/new [post]
+func New(log *slog.Logger, createCategoryHandler CreateCategoryHandler) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		const op = "handlers.operations.create.CreateOperation"
+		const op = "handlers.categories.create.CreateCategory"
 
 		r := c.Request
 		w := c.Writer
 
-		var req models.OperationRequest
+		var req models.CategoryRequest
 
 		err := render.DecodeJSON(r.Body, &req)
 
@@ -66,18 +65,18 @@ func New(log *slog.Logger, createOperationHandler CreateOperationHandler) gin.Ha
 			return
 		}
 
-		err = createOperationHandler.CreateOperation(req)
+		err = createCategoryHandler.CreateCategory(req)
 
 		if err != nil {
-			log.Error("failed to create operation", sl.Error(err))
+			log.Error("failed to create category", sl.Error(err))
 			w.WriteHeader(http.StatusInternalServerError)
-			render.JSON(w, r, response.Error("failed to create operation"))
+			render.JSON(w, r, response.Error("failed to create category"))
 			return
 		}
 
-		log.Info("operation created", slog.Any("operation", req))
+		log.Info("category created", slog.Any("category", req))
 
-		render.JSON(w, r, models.CreateOperationResponse{
+		render.JSON(w, r, models.CategoryResponse{
 			Response: response.OK(),
 		})
 	}

@@ -1,4 +1,4 @@
-package operations
+package categories
 
 import (
 	"alex_gorbunov_exptr_api/internal/lib/api/response"
@@ -11,33 +11,40 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-chi/render"
-	"github.com/go-playground/validator/v10"
+	"github.com/go-playground/validator"
 )
 
-//go:generate mockery --name=CreateOperationHandler
-type CreateOperationHandler interface {
-	CreateOperation(models.OperationRequest) error
+type UpdateCategoryHandler interface {
+	UpdateCategory(models.Category) error
 }
 
-// New godoc
-// @Summary      Create new operation
-// @Description  Create new operation
-// @Tags         operations
+// Update godoc
+// @Summary      update category
+// @Description  update category
+// @Tags         categories
 // @Accept       json
 // @Produce      json
-// @Param        data body models.OperationRequest  true  "Create operation"
-// @Success      200  {object}  models.CreateOperationResponse
+// @Param        id path string true "Category ID" data body models.CategoryRequest true "Update category"
+// @Success      200  {object}  response.Response
 // @Failure      400  {string} 	string "empty request body"
 // @Failure      500  {string}  string "server error"
-// @Router       /operations/new [post]
-func New(log *slog.Logger, createOperationHandler CreateOperationHandler) gin.HandlerFunc {
+// @Router       /categories/{id} [put]
+func Update(log *slog.Logger, updateCategoryHandler UpdateCategoryHandler) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		const op = "handlers.operations.create.CreateOperation"
+		const op = "handlers.categories.update.UpdateCategory"
 
 		r := c.Request
 		w := c.Writer
 
-		var req models.OperationRequest
+		var req models.CategoryRequest
+
+		id := c.Param("id")
+		if id == "" {
+			log.Error("empty category id")
+			w.WriteHeader(http.StatusBadRequest)
+			render.JSON(w, r, response.Error("empty category id"))
+			return
+		}
 
 		err := render.DecodeJSON(r.Body, &req)
 
@@ -66,19 +73,26 @@ func New(log *slog.Logger, createOperationHandler CreateOperationHandler) gin.Ha
 			return
 		}
 
-		err = createOperationHandler.CreateOperation(req)
+		category := models.Category{
+			ID:        id,
+			UserID:    req.UserID,
+			Name:      req.Name,
+			Type:      req.Type,
+			CreatedAt: req.CreatedAt,
+			UpdatedAt: req.UpdatedAt,
+		}
+
+		err = updateCategoryHandler.UpdateCategory(category)
 
 		if err != nil {
-			log.Error("failed to create operation", sl.Error(err))
+			log.Error("failed to update category", sl.Error(err))
 			w.WriteHeader(http.StatusInternalServerError)
-			render.JSON(w, r, response.Error("failed to create operation"))
+			render.JSON(w, r, response.Error("failed to update category"))
 			return
 		}
 
-		log.Info("operation created", slog.Any("operation", req))
-
-		render.JSON(w, r, models.CreateOperationResponse{
-			Response: response.OK(),
-		})
+		log.Info("category updated", slog.Any("category", req))
+		w.WriteHeader(http.StatusOK)
+		render.JSON(w, r, response.OK())
 	}
 }

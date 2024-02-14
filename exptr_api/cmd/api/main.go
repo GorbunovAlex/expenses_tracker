@@ -37,8 +37,6 @@ func main() {
 
 	log := sl.SetupLogger(cfg.Env)
 
-	c := cron.New()
-
 	log.Info("starting server", slog.String("env", cfg.Env))
 
 	storage, err := postgres.NewStorage()
@@ -57,11 +55,17 @@ func main() {
 		IdleTimeout:  cfg.HTTPServer.IdleTimeout,
 	}
 
+	c := cron.New()
+
+	go func() {
+		c.AddFunc("@every 1h", func() {
+			crons.DeleteOutdatedSessions(storage, log)
+		})
+		c.Start()
+	}()
+
 	if err := srv.ListenAndServe(); err != nil {
+		c.Stop()
 		log.Error("server stopped", sl.Error(err))
 	}
-
-	c.AddFunc("@hourly", func() {
-		crons.DeleteOutdatedSessions(storage, log)
-	})
 }

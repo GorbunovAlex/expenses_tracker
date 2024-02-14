@@ -70,7 +70,14 @@ func (s *Storage) GetOperationsByUserID(userID int) ([]models.Operation, error) 
 func (s *Storage) DeleteOperation(id string) error {
 	const fn = "storage.postgresql.DeleteOperation"
 
-	query := `DELETE FROM operations WHERE id = $1`
+	query := `SELECT * FROM operations WHERE id = $1`
+	fmt.Println("id", id)
+	row := s.db.QueryRow(query, id).Scan()
+	if row != nil {
+		return fmt.Errorf("%s: %w", fn, row)
+	}
+
+	query = `DELETE FROM operations WHERE id = $1`
 	_, err := s.db.Exec(query, id)
 	if err != nil {
 		return fmt.Errorf("%s: %w", fn, err)

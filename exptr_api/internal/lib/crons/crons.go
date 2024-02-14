@@ -10,6 +10,7 @@ func DeleteOutdatedSessions(storage *postgres.Storage, log *slog.Logger) {
 
 	log = log.With(slog.String("op", op))
 
+	log.Info("deleting outdated sessions")
 	err := storage.DeleteOutdatedSessions()
 	if err != nil {
 		log.Error("failed to delete outdated sessions", err)

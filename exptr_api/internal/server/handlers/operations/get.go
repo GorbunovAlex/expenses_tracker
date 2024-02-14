@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 )
 
@@ -33,8 +32,6 @@ func GetAll(log *slog.Logger, getAllOperationHandler GetOperationHandler) gin.Ha
 
 		r := c.Request
 		w := c.Writer
-
-		log = log.With(slog.String("op", op), slog.String("request_id", middleware.GetReqID(r.Context())))
 
 		token := r.Header.Get("Bearer")
 		userID, err := getAllOperationHandler.GetUserIDByToken(token)

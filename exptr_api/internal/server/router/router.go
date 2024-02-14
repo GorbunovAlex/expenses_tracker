@@ -29,6 +29,8 @@ func Router(log *slog.Logger, storage *postgres.Storage) http.Handler {
 			auth.POST("/operations/new", operations.New(log, storage))
 			auth.GET("/operations", operations.GetAll(log, storage))
 			auth.PUT("/operations/:id", operations.Update(log, storage))
+			auth.DELETE("/operations/:id", operations.Delete(log, storage))
+
 		}
 		v1.POST("/users/signup", users.Signup(log, storage))
 		v1.POST("/users/login", users.Login(log, storage))

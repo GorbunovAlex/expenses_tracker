@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func (s *Storage) CreateCategory(category *models.Category) error {
+func (s *Storage) CreateCategory(category *models.CategoryRequest) error {
 	const fn = "storage.postgresql.CreateCategory"
 
 	query := `INSERT INTO categories (user_id, name, type, created_at, updated_at) VALUES ($1, $2, $3, $4, $5)`
@@ -29,11 +29,11 @@ func (s *Storage) UpdateCategory(category *models.Category) error {
 	return nil
 }
 
-func (s *Storage) GetCategories() ([]models.Category, error) {
+func (s *Storage) GetCategories(userID int) ([]models.Category, error) {
 	const fn = "storage.postgresql.GetCategories"
 
-	query := `SELECT id, user_id, name, type, created_at, updated_at FROM categories`
-	rows, err := s.db.Query(query)
+	query := `SELECT id, user_id, name, type, created_at, updated_at FROM categories WHERE user_id = $1`
+	rows, err := s.db.Query(query, userID)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", fn, err)
 	}
@@ -55,7 +55,14 @@ func (s *Storage) GetCategories() ([]models.Category, error) {
 func (s *Storage) DeleteCategory(id int) error {
 	const fn = "storage.postgresql.DeleteCategory"
 
-	query := `DELETE FROM categories WHERE id = $1`
+	query := `SELECT * FROM categories WHERE id = $1`
+	fmt.Println("id", id)
+	row := s.db.QueryRow(query, id).Scan()
+	if row != nil {
+		return fmt.Errorf("%s: %w", fn, row)
+	}
+
+	query = `DELETE FROM categories WHERE id = $1`
 	_, err := s.db.Exec(query, id)
 	if err != nil {
 		return fmt.Errorf("%s: %w", fn, err)

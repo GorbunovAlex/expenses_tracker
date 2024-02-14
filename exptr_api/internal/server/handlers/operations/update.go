@@ -11,7 +11,6 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 )
 
@@ -19,14 +18,23 @@ type UpdateOperationHandler interface {
 	UpdateOperation(id int, operation *models.OperationRequest) error
 }
 
+// UpdateOperation godoc
+// @Summary      Update operation by id
+// @Description  Update operation by id
+// @Tags         operations
+// @Accept       json
+// @Produce      json
+// @Param        id path string true "operation id" data body models.OperationRequest
+// @Success      200  {object}  models.UpdateOperationResponse
+// @Failure      400  {string} 	string "empty request body"
+// @Failure      500  {string}  string "server error"
+// @Router       /operations/{id} [put]
 func Update(log *slog.Logger, updateOperationHandler UpdateOperationHandler) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		const op = "handlers.operations.updated.UpdateOperation"
 
 		r := c.Request
 		w := c.Writer
-
-		log = log.With(slog.String("op", op), slog.String("request_id", middleware.GetReqID(r.Context())))
 
 		param := c.Params.ByName("id")
 		if param == "" {
