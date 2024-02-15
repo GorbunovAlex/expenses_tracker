@@ -10,6 +10,7 @@ export const useCategoriesStore = defineStore('categories', () => {
   async function fetchCategories() {
     try {
       const response = await getCategories()
+      categories.splice(0, categories.length)
       response.categories?.forEach((category) => {
         categories.push(category)
       });

@@ -36,6 +36,8 @@ const route = useRoute()
         <div class="flex items-center justify-between text-h5 text-white">
           {{ route.name }}
           <div class="flex items-center gap-8 text-white">
+            <div class="text-white text-body1">$: 1234</div>
+            <q-separator vertical size="2px" color="white" />
             <span class="text-body1">
               {{ date.formatDate(new Date(), 'DD/MM/YYYY') }}
             </span>

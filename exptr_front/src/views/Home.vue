@@ -5,23 +5,11 @@ import { useOperationsStore } from '@/stores/operations'
 import { useCategoriesStore } from '@/stores/categories'
 
 import { TABLE_COLUMNS } from '@/helpers/consts'
-import DoughtChart from '@/components/analytics/DoughtnutChart.vue'
+
+import CategoryBtn from '@/components/dashboard/CategoryBtn.vue'
 
 const operationsStore = useOperationsStore()
 const categoriesStore = useCategoriesStore()
-
-const rows = [
-  {
-    name: 'Frozen Yogurt',
-    calories: 159,
-    fat: 6.0,
-    carbs: 24,
-    protein: 4.0,
-    sodium: 87,
-    calcium: '14%',
-    iron: '1%'
-  }
-]
 
 onMounted(async () => {
   await Promise.all([operationsStore.fetchOperations(), categoriesStore.fetchCategories()])
@@ -31,13 +19,44 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="row gap-16 q-pa-md">
+  <div class="row gap-16 q-pa-sm">
     <div class="col">
-      <DoughtChart />
+      <div class="row items-center gap-16">
+        <CategoryBtn
+          v-for="category in categoriesStore.categories"
+          :key="category.id"
+          :category="category"
+        />
+        <q-btn round flat icon="add" color="white" />
+      </div>
     </div>
     <div class="col">
-      <div class="col text-white text-bold text-h5">$: 1234</div>
-      <q-table title="Treats" :rows="rows" :columns="TABLE_COLUMNS" row-key="name" />
+      <q-table
+        flat
+        bordered
+        card-class="bg-transparent text-white"
+        table-class="dashboard__operations-table"
+        :rows="operationsStore.operations"
+        :columns="TABLE_COLUMNS"
+        row-key="name"
+      />
     </div>
   </div>
 </template>
+
+<style>
+.q-table--bordered {
+  border: 1px solid white;
+}
+
+.q-table thead,
+.q-table tr,
+.q-table th,
+.q-table td {
+  border-color: white;
+}
+
+.q-table__bottom {
+  border-top: 1px solid white;
+}
+</style>

@@ -10,6 +10,7 @@ export const useOperationsStore = defineStore('operations', () => {
   async function fetchOperations() {
     try {
       const response = await getOperations()
+      operations.splice(0, operations.length)
       response.operations?.forEach((opeartion) => {
         operations.push(opeartion)
       });

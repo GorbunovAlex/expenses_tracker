@@ -1,20 +1,38 @@
-import type { QTableColumn } from "quasar";
+import { date, type QTableColumn } from "quasar";
 
 export const TABLE_COLUMNS: QTableColumn[] = [
   {
     name: 'name',
     required: true,
-    label: 'Dessert (100g serving)',
+    label: 'Name',
     align: 'left',
-    field: row => row.name,
-    format: val => `${val}`,
+    field: 'name',
     sortable: true
   },
-  { name: 'calories', align: 'center', label: 'Calories', field: 'calories', sortable: true },
-  { name: 'fat', label: 'Fat (g)', field: 'fat', sortable: true },
-  { name: 'carbs', label: 'Carbs (g)', field: 'carbs' },
-  { name: 'protein', label: 'Protein (g)', field: 'protein' },
-  { name: 'sodium', label: 'Sodium (mg)', field: 'sodium' },
-  { name: 'calcium', label: 'Calcium (%)', field: 'calcium', sortable: true, sort: (a, b) => parseInt(a, 10) - parseInt(b, 10) },
-  { name: 'iron', label: 'Iron (%)', field: 'iron', sortable: true, sort: (a, b) => parseInt(a, 10) - parseInt(b, 10) }
+  {
+    name: 'type',
+    label: 'Type',
+    align: 'left',
+    field: 'type',
+    sortable: true
+  },
+  {
+    name: 'amount',
+    label: 'Amount',
+    align: 'left',
+    field: (row) => row.amount + row.currency,
+    sortable: true
+  },
+  {
+    name: 'comment',
+    label: 'Comment',
+    align: 'left',
+    field: 'comment',
+  },
+  {
+    name: 'date',
+    label: 'Date',
+    align: 'left',
+    field: row => date.formatDate(row.updated_at, 'YYYY-MM-DD'),
+  },
 ]
