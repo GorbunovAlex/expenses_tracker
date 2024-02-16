@@ -19,9 +19,9 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="row gap-16 q-pa-sm">
+  <div class="dashboard full-height column justify-between q-pa-sm">
     <div class="col">
-      <div class="row items-center gap-16">
+      <div class="row items-start gap-16">
         <CategoryBtn
           v-for="category in categoriesStore.categories"
           :key="category.id"
@@ -30,7 +30,7 @@ onMounted(async () => {
         <q-btn round flat icon="add" color="white" />
       </div>
     </div>
-    <div class="col">
+    <div class="col-7">
       <q-table
         flat
         bordered
@@ -45,6 +45,10 @@ onMounted(async () => {
 </template>
 
 <style>
+.q-table__container {
+  height: 100%;
+}
+
 .q-table--bordered {
   border: 1px solid white;
 }

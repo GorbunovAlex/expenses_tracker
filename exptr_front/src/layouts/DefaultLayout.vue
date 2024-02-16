@@ -52,7 +52,9 @@ const route = useRoute()
           </div>
         </div>
         <q-separator class="q-ma-sm" color="white" />
-        <router-view />
+        <div class="page__content">
+          <router-view />
+        </div>
       </q-page>
     </q-page-container>
   </q-layout>
@@ -106,6 +108,10 @@ const route = useRoute()
     box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
+  }
+
+  &__content {
+    height: 70vh;
   }
 }
 </style>
