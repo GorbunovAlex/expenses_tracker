@@ -27,7 +27,7 @@ onMounted(async () => {
           :key="category.id"
           :category="category"
         />
-        <q-btn round flat icon="add" color="white" />
+        <q-btn round flat icon="add" color="white" />r
       </div>
     </div>
     <div class="col-7">

@@ -4,6 +4,7 @@ import (
 	"alex_gorbunov_exptr_api/internal/config"
 	"alex_gorbunov_exptr_api/internal/lib/crons"
 	"alex_gorbunov_exptr_api/internal/lib/logger/sl"
+	"alex_gorbunov_exptr_api/internal/lib/webauthn"
 	"alex_gorbunov_exptr_api/internal/server/router"
 	"alex_gorbunov_exptr_api/internal/storage/postgres"
 	"log/slog"
@@ -42,6 +43,12 @@ func main() {
 	storage, err := postgres.NewStorage()
 	if err != nil {
 		log.Error("failed to init storage", sl.Error(err))
+		os.Exit(1)
+	}
+
+	_, err = webauthn.MustLoad()
+	if err != nil {
+		log.Error("failed to init webauthn", sl.Error(err))
 		os.Exit(1)
 	}
 
