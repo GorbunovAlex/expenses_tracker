@@ -10,4 +10,5 @@ export interface IPageAction {
 
 export enum PageAction {
   LOGOUT = "logout",
+  TOGGLE_CATEGORY = "toggleCategory",
 }

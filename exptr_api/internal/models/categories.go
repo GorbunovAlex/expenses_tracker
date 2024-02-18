@@ -12,6 +12,8 @@ type Category struct {
 	Type      string    `json:"type"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+	Color     string    `json:"color"`
+	Icon      string    `json:"icon"`
 }
 
 type CategoryRequest struct {
@@ -20,6 +22,8 @@ type CategoryRequest struct {
 	Type      string    `json:"type"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+	Color     string    `json:"color"`
+	Icon      string    `json:"icon"`
 }
 
 type CategoryResponse struct {

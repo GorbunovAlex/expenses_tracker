@@ -41,14 +41,14 @@ func New(log *slog.Logger, createCategoryHandler CreateCategoryHandler) gin.Hand
 		err := render.DecodeJSON(r.Body, &req)
 
 		if errors.Is(err, io.EOF) {
-			log.Error("empty request body")
+			log.Error("empty request body", sl.Error(err), op)
 			w.WriteHeader(http.StatusBadRequest)
 			render.JSON(w, r, response.Error("empty request body"))
 			return
 		}
 
 		if err != nil {
-			log.Error("failed to decode request", sl.Error(err))
+			log.Error("failed to decode request", sl.Error(err), op)
 			w.WriteHeader(http.StatusBadRequest)
 			render.JSON(w, r, response.Error("failed to decode request"))
 			return
@@ -58,7 +58,7 @@ func New(log *slog.Logger, createCategoryHandler CreateCategoryHandler) gin.Hand
 
 		if err := validator.New().Struct(req); err != nil {
 			validateErr := err.(validator.ValidationErrors)
-			log.Error("validation failed", sl.Error(err))
+			log.Error("validation failed", sl.Error(err), op)
 			w.WriteHeader(http.StatusBadRequest)
 			render.JSON(w, r, response.Error(validateErr.Error()))
 
@@ -68,7 +68,7 @@ func New(log *slog.Logger, createCategoryHandler CreateCategoryHandler) gin.Hand
 		err = createCategoryHandler.CreateCategory(&req)
 
 		if err != nil {
-			log.Error("failed to create category", sl.Error(err))
+			log.Error("failed to create category", sl.Error(err), op)
 			w.WriteHeader(http.StatusInternalServerError)
 			render.JSON(w, r, response.Error("failed to create category"))
 			return

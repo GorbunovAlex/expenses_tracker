@@ -7,7 +7,9 @@
  */
 
 export interface ModelsCategory {
+  color?: string;
   created_at?: string;
+  icon?: string;
   id?: string;
   name?: string;
   type?: string;

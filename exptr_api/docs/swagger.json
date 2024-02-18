@@ -460,7 +460,13 @@
         "models.Category": {
             "type": "object",
             "properties": {
+                "color": {
+                    "type": "string"
+                },
                 "created_at": {
+                    "type": "string"
+                },
+                "icon": {
                     "type": "string"
                 },
                 "id": {
@@ -483,7 +489,13 @@
         "models.CategoryRequest": {
             "type": "object",
             "properties": {
+                "color": {
+                    "type": "string"
+                },
                 "created_at": {
+                    "type": "string"
+                },
+                "icon": {
                     "type": "string"
                 },
                 "name": {

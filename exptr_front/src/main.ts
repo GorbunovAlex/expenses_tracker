@@ -3,7 +3,7 @@ import { createPinia } from 'pinia'
 
 import './assets/main.scss';
 
-import { Quasar, Notify } from 'quasar'
+import { Quasar, Notify, Dialog } from 'quasar'
 
 import '@quasar/extras/roboto-font-latin-ext/roboto-font-latin-ext.css'
 import '@quasar/extras/material-icons/material-icons.css'
@@ -20,7 +20,8 @@ app.use(createPinia())
 app.use(router)
 app.use(Quasar, {
   plugins: {
-    Notify
+    Notify,
+    Dialog
   }
 })
 

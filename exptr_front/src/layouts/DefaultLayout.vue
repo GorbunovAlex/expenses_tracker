@@ -111,7 +111,7 @@ const route = useRoute()
   }
 
   &__content {
-    height: 70vh;
+    height: 75vh;
   }
 }
 </style>

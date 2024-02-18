@@ -466,7 +466,13 @@ const docTemplate = `{
         "models.Category": {
             "type": "object",
             "properties": {
+                "color": {
+                    "type": "string"
+                },
                 "created_at": {
+                    "type": "string"
+                },
+                "icon": {
                     "type": "string"
                 },
                 "id": {
@@ -489,7 +495,13 @@ const docTemplate = `{
         "models.CategoryRequest": {
             "type": "object",
             "properties": {
+                "color": {
+                    "type": "string"
+                },
                 "created_at": {
+                    "type": "string"
+                },
+                "icon": {
                     "type": "string"
                 },
                 "name": {
