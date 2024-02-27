@@ -43,6 +43,12 @@ func Router(log *slog.Logger, storage *postgres.Storage) http.Handler {
 		}
 		v1.POST("/users/signup", users.Signup(log, storage))
 		v1.POST("/users/login", users.Login(log, storage))
+
+		v1.POST("/users/authn/signup/begin", users.SignupWebAuthnBegin(log, storage))
+		v1.POST("/users/authn/signup/finish", users.SignupWebAuthnFinish(log, storage))
+
+		v1.POST("/users/authn/login/begin", users.LoginWebAuthnBegin(log, storage))
+		v1.POST("/users/authn/login/finish", users.LoginWebAuthnFinish(log, storage))
 	}
 
 	return router

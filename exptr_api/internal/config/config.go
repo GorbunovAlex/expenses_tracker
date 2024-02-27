@@ -12,6 +12,7 @@ type Config struct {
 	Env        string `yaml:"env" env-default:"local"`
 	HTTPServer `yaml:"http_server"`
 	Database   `yaml:"database"`
+	Redis      `yaml:"redis"`
 }
 
 type HTTPServer struct {
@@ -27,6 +28,12 @@ type Database struct {
 	Name     string `yaml:"name" env-required:"true"`
 	User     string `yaml:"user" env-required:"true"`
 	Password string `yaml:"password" env-required:"true"`
+}
+
+type Redis struct {
+	RedisAddress  string `yaml:"redis_address" env-required:"true"`
+	RedisPassword string `yaml:"redis_password"`
+	DB            int    `yaml:"db"`
 }
 
 func MustLoad() *Config {

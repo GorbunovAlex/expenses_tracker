@@ -2,8 +2,13 @@ package postgres
 
 import (
 	"alex_gorbunov_exptr_api/internal/models"
+	redis "alex_gorbunov_exptr_api/internal/storage/redis"
+	"context"
+	"encoding/json"
 	"fmt"
 	"time"
+
+	"github.com/go-webauthn/webauthn/webauthn"
 )
 
 func (s *Storage) CreateUser(user *models.User) error {
@@ -37,7 +42,7 @@ func (s *Storage) SetUserSession(userID int, token string) error {
 	_, err := s.GetUserSession(userID)
 	fmt.Println(err)
 	if err == nil {
-		query := `UPDATE user_sessions SET token = $1, created_date = $2 WHERE user_id = $3`
+		query := `UPDATE users_sessions SET token = $1, created_date = $2 WHERE user_id = $3`
 		_, err = s.db.Exec(query, token, time.Now(), userID)
 		if err != nil {
 			return fmt.Errorf("%s: %w", fn, err)
@@ -45,7 +50,7 @@ func (s *Storage) SetUserSession(userID int, token string) error {
 		return nil
 	}
 
-	query := `INSERT INTO user_sessions (user_id, created_date, token) VALUES ($1, $2, $3)`
+	query := `INSERT INTO users_sessions (user_id, created_date, token) VALUES ($1, $2, $3)`
 	_, err = s.db.Exec(query, userID, time.Now(), token)
 	if err != nil {
 		return fmt.Errorf("%s: %w", fn, err)
@@ -54,10 +59,87 @@ func (s *Storage) SetUserSession(userID int, token string) error {
 	return nil
 }
 
+func (s *Storage) SetAuthnUserSession(userID int, session *webauthn.SessionData) error {
+	const fn = "storage.postgresql.setAuthnUserSession"
+
+	ctx := context.Background()
+
+	key := fmt.Sprintf("user:%d:session", userID)
+
+	sessionData, err := json.Marshal(session)
+
+	err = redis.RedisClient.Set(ctx, key, sessionData, 0).Err()
+	if err != nil {
+		return fmt.Errorf("%s: %w", fn, err)
+	}
+
+	return nil
+}
+
+func (s *Storage) GetAuthnUserSession(userID int) (*webauthn.SessionData, error) {
+	const fn = "storage.postgresql.getAuthnUserSession"
+
+	ctx := context.Background()
+
+	key := fmt.Sprintf("user:%d:session", userID)
+
+	val, err := redis.RedisClient.Get(ctx, key).Result()
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", fn, err)
+	}
+
+	var session webauthn.SessionData
+	err = json.Unmarshal([]byte(val), &session)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", fn, err)
+	}
+
+	return &session, nil
+}
+
+func (s *Storage) SetAuthnUserCredentials(userID int, credentials *webauthn.Credential) error {
+	const fn = "storage.postgresql.setAuthnUserCredentialsSet"
+
+	ctx := context.Background()
+
+	key := fmt.Sprintf("user:%d:credentials", userID)
+
+	credentialsData, err := json.Marshal(credentials)
+
+	err = redis.RedisClient.Set(ctx, key, credentialsData, 0).Err()
+	if err != nil {
+		return fmt.Errorf("%s: %w", fn, err)
+	}
+
+	return nil
+}
+
+func (s *Storage) GetAuthnUserCredentials(userID int) (*webauthn.Credential, error) {
+	const fn = "storage.postgresql.getAuthnUserCredentialsGet"
+
+	ctx := context.Background()
+
+	key := fmt.Sprintf("user:%d:credentials", userID)
+
+	val, err := redis.RedisClient.Get(ctx, key).Result()
+
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", fn, err)
+	}
+
+	var credentials webauthn.Credential
+	err = json.Unmarshal([]byte(val), &credentials)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", fn, err)
+	}
+
+	return &credentials, nil
+}
+
 func (s *Storage) UpdateUserSession(userID int, token string) error {
 	const fn = "storage.postgresql.updateUserSession"
 
-	query := `UPDATE user_sessions SET token = $1 WHERE user_id = $2`
+	query := `UPDATE users_sessions SET token = $1 WHERE user_id = $2`
 	_, err := s.db.Exec(query, token, userID)
 	if err != nil {
 		return fmt.Errorf("%s: %w", fn, err)

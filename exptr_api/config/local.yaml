@@ -10,3 +10,7 @@ database:
   name: "exptr"
   user: "postgres"
   password: "QJ552308NAv28"
+redis:
+  redis_address: "localhost:6379"
+  redis_password: ""
+  db: 0

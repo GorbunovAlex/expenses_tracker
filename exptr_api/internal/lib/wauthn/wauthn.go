@@ -1,4 +1,4 @@
-package webauthn
+package wauthn
 
 import (
 	"fmt"
@@ -6,7 +6,11 @@ import (
 	"github.com/go-webauthn/webauthn/webauthn"
 )
 
-func MustLoad() (*webauthn.WebAuthn, error) {
+var (
+	WebAuthn *webauthn.WebAuthn
+)
+
+func MustLoad() error {
 
 	const op = "webauthn.MustLoad"
 
@@ -17,9 +21,10 @@ func MustLoad() (*webauthn.WebAuthn, error) {
 	}
 
 	if webAuthn, err := webauthn.New(wconfig); err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return fmt.Errorf("%s: %w", op, err)
 	} else {
-		return webAuthn, nil
+		WebAuthn = webAuthn
+		return nil
 	}
 
 }

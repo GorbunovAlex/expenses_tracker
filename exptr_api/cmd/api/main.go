@@ -4,9 +4,10 @@ import (
 	"alex_gorbunov_exptr_api/internal/config"
 	"alex_gorbunov_exptr_api/internal/lib/crons"
 	"alex_gorbunov_exptr_api/internal/lib/logger/sl"
-	"alex_gorbunov_exptr_api/internal/lib/webauthn"
+	"alex_gorbunov_exptr_api/internal/lib/wauthn"
 	"alex_gorbunov_exptr_api/internal/server/router"
 	"alex_gorbunov_exptr_api/internal/storage/postgres"
+	"alex_gorbunov_exptr_api/internal/storage/redis"
 	"log/slog"
 	"net/http"
 	"os"
@@ -46,7 +47,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	_, err = webauthn.MustLoad()
+	err = redis.MustLoad()
+	if err != nil {
+		log.Error("failed to init redis", sl.Error(err))
+		os.Exit(1)
+	}
+
+	err = wauthn.MustLoad()
 	if err != nil {
 		log.Error("failed to init webauthn", sl.Error(err))
 		os.Exit(1)

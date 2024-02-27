@@ -10,3 +10,7 @@ database:
   name: ""
   user: ""
   password: ""
+redis:
+  redis_address: ""
+  redis_password: ""
+  db: 0
