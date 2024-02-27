@@ -1,11 +1,19 @@
 <script setup lang="ts">
+import { useUserStore } from '@/stores/user'
 import { ref } from 'vue'
 
 const email = ref('')
 const password = ref('')
 
-const onSubmit = () => {
-  console.log('Submitted!', email.value, password.value)
+const userStore = useUserStore()
+
+const onSubmit = async () => {
+  // userStore.webAuthnSignUp(email.value)
+  if (window.PublicKeyCredential) {
+    const available =
+      await window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
+    console.log(available)
+  }
 }
 
 const onReset = () => {
@@ -25,13 +33,13 @@ const onReset = () => {
         :rules="[(val) => (val && val.length > 0) || 'Please type something']"
       />
 
-      <q-input
+      <!-- <q-input
         filled
         v-model="password"
         label="Password *"
         lazy-rules
         :rules="[(val) => (val !== null && val !== '') || 'Please type your age']"
-      />
+      /> -->
 
       <div>
         <q-btn label="Submit" type="submit" color="primary" />
