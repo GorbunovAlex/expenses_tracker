@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useUserStore } from '@/stores/user'
 import { ref } from 'vue'
+import 'webauthn-components/registration'
 
 const email = ref('')
 const password = ref('')
@@ -8,11 +9,11 @@ const password = ref('')
 const userStore = useUserStore()
 
 const onSubmit = async () => {
-  // userStore.webAuthnSignUp(email.value)
   if (window.PublicKeyCredential) {
     const available =
       await window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
     console.log(available)
+    userStore.webAuthnSignUp(email.value)
   }
 }
 
@@ -26,28 +27,29 @@ const onReset = () => {
   <div class="login">
     <q-form @submit="onSubmit" @reset="onReset" class="q-gutter-md">
       <q-input
-        filled
+        outlined
         v-model="email"
         label="Your email *"
         lazy-rules
+        color="warning"
+        label-color="warning"
+        input-style="color: orange"
         :rules="[(val) => (val && val.length > 0) || 'Please type something']"
       />
 
-      <!-- <q-input
-        filled
-        v-model="password"
-        label="Password *"
-        lazy-rules
-        :rules="[(val) => (val !== null && val !== '') || 'Please type your age']"
-      /> -->
-
       <div>
-        <q-btn label="Submit" type="submit" color="primary" />
-        <q-btn label="Reset" type="reset" color="primary" flat class="q-ml-sm" />
+        <q-btn label="Submit" type="submit" color="warning" />
+        <q-btn label="Reset" type="reset" color="warning" flat class="q-ml-sm" />
       </div>
     </q-form>
   </div>
 </template>
+
+<style>
+.q-field--outlined .q-field__control:before {
+  border: 1px solid rgb(183, 159, 113);
+}
+</style>
 
 <style scoped lang="scss">
 .login {

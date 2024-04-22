@@ -192,9 +192,6 @@ func SignupWebAuthnFinish(log *slog.Logger, signupHandler SignupHandler) gin.Han
 			return
 		}
 
-		// If creation was successful, store the credential object
-		// Pseudocode to add the user credential.
-
 		err = signupHandler.SetAuthnUserCredentials(user.ID, credential)
 		if err != nil {
 			log.Error("failed to set user credentials", sl.Error(err))

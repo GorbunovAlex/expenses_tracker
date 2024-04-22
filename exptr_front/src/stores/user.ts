@@ -15,11 +15,14 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  function base64URLToBuffer(base64URL: string) {
-    const base64 = base64URL.replace(/-/g, '+').replace(/_/g, '/');
-    const padLen = (4 - (base64.length % 4)) % 4;
-    return Uint8Array.from(atob(base64.padEnd(base64.length + padLen, '=')), c => c.charCodeAt(0));
-  }
+  function base64ToArrayBuffer(base64: string) {
+    const binaryString = atob(base64);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes.buffer;
+}
 
   function bufferToBase64URL(buffer: ArrayBuffer) {
     const bytes = new Uint8Array(buffer);
@@ -41,20 +44,22 @@ export const useUserStore = defineStore('user', () => {
       
       });
       const data = await response.json();
-      console.log(data);
+      console.log(data)
+      const pubKey = data.options.publicKey      ;
+      console.log(pubKey);
       const publicKey = {
-        challenge: base64URLToBuffer(data.challenge),
+        challenge: base64ToArrayBuffer(pubKey.challenge),
         rp: {
-          id: data.rp.id,
-          name: data.rp.name
+          id: pubKey.rp.id,
+          name: pubKey.rp.name
         },
         user: {
-          id: base64URLToBuffer(email),
+          id: pubKey.user.id,
           name: email,
           displayName: email
         },
-        pubKeyCredParams: data.pubKeyCredParams,
-        timeout: data.timeout,
+        pubKeyCredParams: pubKey.pubKeyCredParams,
+        timeout: pubKey.timeout,
         attestation: "none" as AttestationConveyancePreference,
       };
       const cred = await navigator.credentials.create({ publicKey });
