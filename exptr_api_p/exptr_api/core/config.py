@@ -22,7 +22,7 @@ def parse_cors(v: Any) -> list[str] | str:
         return v
     raise ValueError(v)
 
-
+# TODO: make different classes for settings(e g postgres)
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env", env_ignore_empty=True, extra="ignore"
@@ -83,5 +83,5 @@ class Settings(BaseSettings):
 
         return self
 
-
+# TODO: change to DI
 settings = Settings()  # type: ignore

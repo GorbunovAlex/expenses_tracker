@@ -1,48 +1,33 @@
-from sqlalchemy import DateTime, Column, ForeignKey, Integer, String
+import datetime
+from pydantic import BaseModel
 
-from .db import Base
+from exptr_api.entities import response
 
-class Operation:
-    __tablename__ = "operations"
+class Operation(BaseModel):
+    id: int
+    user_id: int
+    category_id: int
+    amount: int
+    currency: str
+    name: str
+    comment: str
+    type: str
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
+    
 
-    id = Column(Integer, primary_key=True, autoincrement=True, unique=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=False)
-    category_id = Column(Integer, ForeignKey("categories.id"), nullable=False, unique=False)
-    amount = Column(Integer, nullable=False, unique=False)
-    currency = Column(String, nullable=False, unique=False)
-    name = Column(String, nullable=False, unique=False)
-    comment = Column(String, nullable=True, unique=False)
-    type = Column(String, nullable=False, unique=False)
-    created_at = Column(DateTime)
-    updated_at = Column(DateTime)
+class OperationRequest(Operation):
+    user_id: int
+    category_id: int
+    amount: int
+    currency: str
+    name: str
+    comment: str
+    type: str
+    updated_at: datetime.datetime
 
-    def __init__(self, ID, UserID, CategoryID, Amount, Currency, Name, Comment, Type, CreatedAt, UpdatedAt):
-        self.ID = ID
-        self.UserID = UserID
-        self.CategoryID = CategoryID
-        self.Amount = Amount
-        self.Currency = Currency
-        self.Name = Name
-        self.Comment = Comment
-        self.Type = Type
-        self.CreatedAt = CreatedAt
-        self.UpdatedAt = UpdatedAt
-
-class OperationRequest:
-    def __init__(self, UserID, CategoryID, Amount, Currency, Name, Comment, Type, CreatedAt, UpdatedAt):
-        self.UserID = UserID
-        self.CategoryID = CategoryID
-        self.Amount = Amount
-        self.Currency = Currency
-        self.Name = Name
-        self.Comment = Comment
-        self.Type = Type
-        self.CreatedAt = CreatedAt
-        self.UpdatedAt = UpdatedAt
-
-class CreateOperationResponse:
-    def __init__(self, Response):
-        self.Response = Response
+class CreateOperationResponse(BaseModel):
+    response: response.Response
 
 class GetOperationsByUserIDResponse:
     def __init__(self, Response, Operations):

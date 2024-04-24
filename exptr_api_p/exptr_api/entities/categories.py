@@ -1,36 +1,33 @@
 import datetime
 
-from sqlalchemy import DateTime, Column, ForeignKey, Integer, String
+from pydantic import BaseModel
 
-from .db import Base
+from exptr_api.entities import response
 
-class Category(Base):
-    __tablename__ = "categories"
 
-    id = Column(Integer, primary_key=True, autoincrement=True, unique=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=True, unique=False)
-    name = Column(String, nullable=False, unique=False)
-    type = Column(String, nullable=False, unique=False)
-    created_at = Column(DateTime)
-    updated_at = Column(DateTime)
-    color = Column(String)
-    icon = Column(String)
+class Category(BaseModel):
+    id: int
+    user_id: int
+    name: str
+    type: str
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
+    color: str
+    icon: str
+    
 
-class CategoryRequest:
-    def __init__(self, user_id: str, name: str, type: str, created_at: datetime.datetime, updated_at: datetime.datetime, color: str, icon: str):
-        self.user_id = user_id
-        self.name = name
-        self.type = type
-        self.created_at = created_at
-        self.updated_at = updated_at
-        self.color = color
-        self.icon = icon
+class CategoryRequest(Category):
+    user_id: int
+    name: str
+    type: str
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
+    color: str
+    icon: str
 
-class CategoryResponse:
-    def __init__(self, response: response.Response):
-        self.response = response
-
-class GetCategoriesResponse:
-    def __init__(self, response: response.Response, categories: List[Category]):
-        self.response = response
-        self.categories = categories
+class CategoryResponse(BaseModel):
+    response: response.Response
+    
+class GetCategoriesResponse(BaseModel):
+    response: response.Response
+    categories: list[Category]

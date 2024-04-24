@@ -1,21 +1,29 @@
-from sqlalchemy import DateTime, Column, Integer, String
+import datetime
+from pydantic import BaseModel
 
-from .db import Base
+from exptr_api.entities import response
 
-class User:
-  __tablename__ = "users"
+class User(BaseModel):
+  id: int
+  authn_id: str
+  email: str
+  created_at: datetime.datetime
+  updated_at: datetime.datetime
 
-  id = Column(Integer, primary_key=True, autoincrement=True, unique=True)
-  authn_id = Column(String)
-  email = Column(String, unique=True, nullable=False)
-  password = Column(String)
-  created_at = Column(DateTime)
-  updated_at = Column(DateTime)
+class SignUpRequest(BaseModel):
+  email: str
+  password: str
+  
+class LoginRequest(BaseModel):
+  email: str
+  password: str
 
-  def __init__(self, ID, AuthnID, Email, Password, CreatedAt, UpdatedAt):
-    self.ID = ID
-    self.AuthnID = AuthnID
-    self.Email = Email
-    self.Password = Password
-    self.CreatedAt = CreatedAt
-    self.UpdatedAt = UpdatedAt
+class LoginResponse(BaseModel):
+  token: str
+  response: response.Response
+
+class UserSession(BaseModel):
+  id: str
+  user_id: str
+  created_at: datetime.datetime
+  token: str

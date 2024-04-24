@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-from exptr_api.config import settings
+from exptr_api.core import settings
 
 engine = create_engine(
     settings.SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
