@@ -1,23 +1,23 @@
 <script setup lang="ts">
-import { useUserStore } from '@/stores/user'
 import { ref } from 'vue'
-import 'webauthn-components/registration'
+import { useRouter } from 'vue-router'
+
+import { useUserStore } from '@/stores/user'
 
 const email = ref('')
 const password = ref('')
-
 const userStore = useUserStore()
-
-const onSubmit = async () => {
-  if (window.PublicKeyCredential) {
-    const available =
-      await window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
-    console.log(available)
-    userStore.webAuthnSignUp(email.value)
+const router = useRouter();
+async function onSubmit() {
+  if (email.value && password.value) {
+    const result = await userStore.login(email.value, password.value)
+    if (result) {
+      router.push({ name: 'Dashboard' })
+    }
   }
 }
 
-const onReset = () => {
+function onReset() {
   email.value = ''
   password.value = ''
 }
@@ -25,21 +25,36 @@ const onReset = () => {
 
 <template>
   <div class="login">
-    <q-form @submit="onSubmit" @reset="onReset" class="q-gutter-md">
+    <q-form @submit="onSubmit" @reset="onReset" class="login__form">
+      <div class="text-h6 text-white q-mb-md">Login</div>
       <q-input
         outlined
         v-model="email"
-        label="Your email *"
+        label="Email *"
         lazy-rules
         color="warning"
-        label-color="warning"
-        input-style="color: orange"
-        :rules="[(val) => (val && val.length > 0) || 'Please type something']"
+        label-color="white"
+        input-style="color: white"
+        :rules="['email']"
+      />
+      <q-input
+        outlined
+        v-model="password"
+        label="Password *"
+        lazy-rules
+        color="warning"
+        type="password"
+        label-color="white"
+        input-style="color: white"
+        :rules="[(val) => (val && val.length > 0) || 'Password is required']"
       />
 
-      <div>
-        <q-btn label="Submit" type="submit" color="warning" />
-        <q-btn label="Reset" type="reset" color="warning" flat class="q-ml-sm" />
+      <div class="flex row justify-between items-center">
+        <div class="text-body1 text-white">Don't have an account? <q-btn dense flat class="text-warning">Sign up</q-btn></div>
+        <div class="flex row">
+          <q-btn label="Submit" type="submit" color="warning" />
+          <q-btn label="Reset" type="reset" color="warning" flat class="q-ml-sm" />
+        </div>
       </div>
     </q-form>
   </div>
@@ -53,8 +68,7 @@ const onReset = () => {
 
 <style scoped lang="scss">
 .login {
-  width: 30%;
-  height: 40%;
+  width: 60%;
   display: grid;
   place-items: center;
   padding: 10px;
@@ -64,7 +78,9 @@ const onReset = () => {
   -webkit-backdrop-filter: blur(10px);
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.18);
-  border: 1px solid $warning;
-  border-radius: 10px;
+
+  &__form {
+    width: 100%;
+  }
 }
 </style>

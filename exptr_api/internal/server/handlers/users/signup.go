@@ -3,7 +3,6 @@ package users
 import (
 	"alex_gorbunov_exptr_api/internal/lib/api/response"
 	"alex_gorbunov_exptr_api/internal/lib/logger/sl"
-	authn "alex_gorbunov_exptr_api/internal/lib/wauthn"
 	"alex_gorbunov_exptr_api/internal/models"
 	"alex_gorbunov_exptr_api/pkg/hasher"
 	"errors"
@@ -16,15 +15,11 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/go-playground/validator"
-	"github.com/go-webauthn/webauthn/webauthn"
 )
 
 type SignupHandler interface {
 	CreateUser(user *models.User) error
 	GetUserByEmail(email string) (*models.User, error)
-	SetAuthnUserSession(userID int, session *webauthn.SessionData) error
-	GetAuthnUserSession(userID int) (*webauthn.SessionData, error)
-	SetAuthnUserCredentials(userID int, credentials *webauthn.Credential) error
 }
 
 // Signup godoc
@@ -110,103 +105,6 @@ func Signup(log *slog.Logger, signupHandler SignupHandler) gin.HandlerFunc {
 		}
 
 		log.Info("user created", slog.Any("user", user))
-
-		render.JSON(w, r, response.OK())
-	}
-}
-
-func SignupWebAuthnBegin(log *slog.Logger, signupHandler SignupHandler) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		const op = "handlers.users.signup.SignupWebAuthnBegin"
-
-		r := c.Request
-		w := c.Writer
-
-		log = log.With(slog.String("op", op), slog.String("request_id", middleware.GetReqID(r.Context())))
-
-		var req models.WebAuthnUserRequest
-
-		user := &models.User{
-			Email:     req.Email,
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
-		}
-
-		options, session, err := authn.WebAuthn.BeginRegistration(user)
-
-		if err != nil {
-			log.Error("failed to begin registration", sl.Error(err))
-			w.WriteHeader(http.StatusInternalServerError)
-			render.JSON(w, r, response.Error("failed to begin registration"))
-			return
-		}
-
-		err = signupHandler.SetAuthnUserSession(user.ID, session)
-
-		if err != nil {
-			log.Error("failed to set user session", sl.Error(err))
-			w.WriteHeader(http.StatusInternalServerError)
-			render.JSON(w, r, response.Error("failed to set user session"))
-			return
-		}
-
-		log.Info("user created", slog.Any("user", user))
-
-		render.JSON(w, r, models.WebAuthnSignupResponse{
-			Options:  options,
-			Response: response.OK(),
-		})
-	}
-}
-
-func SignupWebAuthnFinish(log *slog.Logger, signupHandler SignupHandler) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		const op = "handlers.users.signup.SignupWebAuthnFinish"
-
-		r := c.Request
-		w := c.Writer
-
-		var req models.WebAuthnUserRequest
-
-		user, err := signupHandler.GetUserByEmail(req.Email)
-		if err != nil {
-			log.Error("failed to get user by email", sl.Error(err))
-			w.WriteHeader(http.StatusNotFound)
-			render.JSON(w, r, response.Error("wrong email or password"))
-			return
-		}
-
-		session, err := signupHandler.GetAuthnUserSession(user.ID)
-		if err != nil {
-			log.Error("failed to get user session", sl.Error(err))
-			w.WriteHeader(http.StatusInternalServerError)
-			render.JSON(w, r, response.Error("failed to get user session"))
-			return
-		}
-
-		credential, err := authn.WebAuthn.FinishRegistration(user, *session, r)
-		if err != nil {
-			log.Error("failed to finish registration", sl.Error(err))
-			w.WriteHeader(http.StatusInternalServerError)
-			render.JSON(w, r, response.Error("failed to finish registration"))
-			return
-		}
-
-		err = signupHandler.SetAuthnUserCredentials(user.ID, credential)
-		if err != nil {
-			log.Error("failed to set user credentials", sl.Error(err))
-			w.WriteHeader(http.StatusInternalServerError)
-			render.JSON(w, r, response.Error("failed to set user credentials"))
-			return
-		}
-
-		err = signupHandler.CreateUser(user)
-		if err != nil {
-			log.Error("failed to create user", sl.Error(err))
-			w.WriteHeader(http.StatusInternalServerError)
-			render.JSON(w, r, response.Error("failed to create user"))
-			return
-		}
 
 		render.JSON(w, r, response.OK())
 	}

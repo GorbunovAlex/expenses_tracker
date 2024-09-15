@@ -7,7 +7,6 @@ import (
 	"alex_gorbunov_exptr_api/internal/lib/wauthn"
 	"alex_gorbunov_exptr_api/internal/server/router"
 	"alex_gorbunov_exptr_api/internal/storage/postgres"
-	"alex_gorbunov_exptr_api/internal/storage/redis"
 	"log/slog"
 	"net/http"
 	"os"
@@ -44,12 +43,6 @@ func main() {
 	storage, err := postgres.NewStorage()
 	if err != nil {
 		log.Error("failed to init storage", sl.Error(err))
-		os.Exit(1)
-	}
-
-	err = redis.MustLoad()
-	if err != nil {
-		log.Error("failed to init redis", sl.Error(err))
 		os.Exit(1)
 	}
 
