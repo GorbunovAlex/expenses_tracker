@@ -1,4 +1,4 @@
 .DS_Store
 
 extr_api/.vscode
-extr_api/config/*.yaml
+extr_api/config/local.yaml
