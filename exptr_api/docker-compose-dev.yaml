@@ -1,0 +1,38 @@
+services:
+  exptr-app:
+    container_name: exptr_app
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    network_mode: host
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+    stdin_open: true
+    tty: true
+
+  exptr_pg:
+    image: postgres:latest
+    container_name: exptr_pg
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: exptr_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+  exptr_redis:
+    image: redis:latest
+    container_name: exptr_redis
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--requirepass", "password"]
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:

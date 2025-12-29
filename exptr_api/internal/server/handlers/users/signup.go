@@ -1,15 +1,16 @@
 package users
 
 import (
-	"alex_gorbunov_exptr_api/internal/lib/api/response"
-	"alex_gorbunov_exptr_api/internal/lib/logger/sl"
-	"alex_gorbunov_exptr_api/internal/models"
-	"alex_gorbunov_exptr_api/pkg/hasher"
 	"errors"
 	"io"
 	"log/slog"
 	"net/http"
-	"time"
+
+	"alex_gorbunov_exptr_api/internal/domain"
+	"alex_gorbunov_exptr_api/internal/lib/api/response"
+	"alex_gorbunov_exptr_api/internal/lib/logger/sl"
+	"alex_gorbunov_exptr_api/internal/models"
+	"alex_gorbunov_exptr_api/pkg/hasher"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-chi/chi/v5/middleware"
@@ -18,8 +19,8 @@ import (
 )
 
 type SignupHandler interface {
-	CreateUser(user *models.User) error
-	GetUserByEmail(email string) (*models.User, error)
+	CreateUser(user *domain.User) error
+	GetUserByEmail(email string) (*domain.User, error)
 }
 
 // Signup godoc
@@ -88,11 +89,9 @@ func Signup(log *slog.Logger, signupHandler SignupHandler) gin.HandlerFunc {
 			return
 		}
 
-		user := &models.User{
-			Email:     req.Email,
-			Password:  passwordHash,
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
+		user := &domain.User{
+			Email:    req.Email,
+			Password: passwordHash,
 		}
 
 		err = signupHandler.CreateUser(user)

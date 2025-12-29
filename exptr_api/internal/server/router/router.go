@@ -1,6 +1,9 @@
 package router
 
 import (
+	"log/slog"
+	"net/http"
+
 	_ "alex_gorbunov_exptr_api/docs"
 	"alex_gorbunov_exptr_api/internal/server/handlers/categories"
 	"alex_gorbunov_exptr_api/internal/server/handlers/operations"
@@ -8,8 +11,6 @@ import (
 	mLogger "alex_gorbunov_exptr_api/internal/server/middleware/logger"
 	"alex_gorbunov_exptr_api/internal/server/middleware/token"
 	"alex_gorbunov_exptr_api/internal/storage/postgres"
-	"log/slog"
-	"net/http"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -29,7 +30,7 @@ func Router(log *slog.Logger, storage *postgres.Storage) http.Handler {
 	v1 := router.Group("/api/v1")
 	{
 		auth := v1.Group("/")
-		auth.Use(token.TokenValidationMiddleware())
+		auth.Use(token.TokenValidationMiddleware(log, storage))
 		{
 			auth.POST("/operations/new", operations.New(log, storage))
 			auth.GET("/operations/", operations.GetAll(log, storage))

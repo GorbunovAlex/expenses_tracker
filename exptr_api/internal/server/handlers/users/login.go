@@ -1,25 +1,28 @@
 package users
 
 import (
-	"alex_gorbunov_exptr_api/internal/lib/api/response"
-	"alex_gorbunov_exptr_api/internal/lib/logger/sl"
-	"alex_gorbunov_exptr_api/internal/models"
-	"alex_gorbunov_exptr_api/pkg/hasher"
-	"alex_gorbunov_exptr_api/pkg/jwt"
 	"errors"
 	"io"
 	"log/slog"
 	"net/http"
 
+	"alex_gorbunov_exptr_api/internal/domain"
+	"alex_gorbunov_exptr_api/internal/lib/api/response"
+	"alex_gorbunov_exptr_api/internal/lib/logger/sl"
+	"alex_gorbunov_exptr_api/internal/models"
+	"alex_gorbunov_exptr_api/pkg/hasher"
+	"alex_gorbunov_exptr_api/pkg/jwt"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/go-playground/validator"
+	"github.com/google/uuid"
 )
 
 type LoginHandler interface {
-	GetUserByEmail(email string) (*models.User, error)
-	SetUserSession(userID int, token string) error
+	GetUserByEmail(email string) (*domain.User, error)
+	SetUserSession(userID uuid.UUID, token string) error
 }
 
 // Login godoc

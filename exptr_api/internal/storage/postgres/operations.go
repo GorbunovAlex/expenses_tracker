@@ -1,86 +1,104 @@
 package postgres
 
 import (
-	"alex_gorbunov_exptr_api/internal/models"
+	"errors"
 	"fmt"
+
+	"alex_gorbunov_exptr_api/internal/domain"
+	"alex_gorbunov_exptr_api/internal/models"
+
+	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 func (s *Storage) CreateOperation(operation models.OperationRequest) error {
 	const fn = "storage.postgresql.CreateOperation"
 
-	query := `INSERT INTO operations (user_id, category_id, amount, currency, name, comment, type, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
-	_, err := s.db.Exec(query, operation.UserID, operation.CategoryID, operation.Amount, operation.Currency, operation.Name, operation.Comment, operation.Type, operation.CreatedAt, operation.UpdatedAt)
-	if err != nil {
-		return fmt.Errorf("%s: %w", fn, err)
+	op := domain.Operation{
+		UserID:     operation.UserID,
+		CategoryID: operation.CategoryID,
+		Amount:     operation.Amount,
+		Currency:   operation.Currency,
+		Name:       operation.Name,
+		Comment:    operation.Comment,
+		Type:       operation.Type,
+	}
+
+	result := s.db.Create(&op)
+	if result.Error != nil {
+		return fmt.Errorf("%s: %w", fn, result.Error)
 	}
 
 	return nil
 }
 
-func (s *Storage) UpdateOperation(id int, operation *models.OperationRequest) error {
+func (s *Storage) UpdateOperation(id uuid.UUID, operation *models.OperationRequest) error {
 	const fn = "storage.postgresql.UpdateOperation"
 
-	query := `UPDATE operations SET category_id = $1, amount = $2, currency = $3, name = $4, comment = $5, type = $6, updated_at = $7 WHERE id = $8`
-	_, err := s.db.Exec(query, operation.CategoryID, operation.Amount, operation.Currency, operation.Name, operation.Comment, operation.Type, operation.UpdatedAt, id)
-	if err != nil {
-		return fmt.Errorf("%s: %w", fn, err)
+	result := s.db.Model(&domain.Operation{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"category_id": operation.CategoryID,
+		"amount":      operation.Amount,
+		"currency":    operation.Currency,
+		"name":        operation.Name,
+		"comment":     operation.Comment,
+		"type":        operation.Type,
+	})
+
+	if result.Error != nil {
+		return fmt.Errorf("%s: %w", fn, result.Error)
+	}
+
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("%s: operation not found", fn)
 	}
 
 	return nil
 }
 
-func (s *Storage) GetOperationByID(id string) (*models.Operation, error) {
+func (s *Storage) GetOperationByID(id uuid.UUID) (*domain.Operation, error) {
 	const fn = "storage.postgresql.GetOperationByID"
 
-	query := `SELECT id, user_id, category_id, amount, currency, name, comment, type, created_at, updated_at FROM operations WHERE id = $1`
-	row := s.db.QueryRow(query, id)
-
-	var operation models.Operation
-	err := row.Scan(&operation.ID, &operation.UserID, &operation.CategoryID, &operation.Amount, &operation.Currency, &operation.Name, &operation.Comment, &operation.Type, &operation.CreatedAt, &operation.UpdatedAt)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", fn, err)
+	var operation domain.Operation
+	result := s.db.Where("id = ?", id).First(&operation)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("%s: operation not found", fn)
+		}
+		return nil, fmt.Errorf("%s: %w", fn, result.Error)
 	}
 
 	return &operation, nil
 }
 
-func (s *Storage) GetOperationsByUserID(userID int) ([]models.Operation, error) {
+func (s *Storage) GetOperationsByUserID(userID uuid.UUID) ([]domain.Operation, error) {
 	const fn = "storage.postgresql.GetOperationsByUserID"
 
-	query := `SELECT id, user_id, category_id, amount, currency, name, comment, type, created_at, updated_at FROM operations WHERE user_id = $1`
-	rows, err := s.db.Query(query, userID)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", fn, err)
-	}
-	defer rows.Close()
-
-	var operations []models.Operation
-	for rows.Next() {
-		var operation models.Operation
-		err := rows.Scan(&operation.ID, &operation.UserID, &operation.CategoryID, &operation.Amount, &operation.Currency, &operation.Name, &operation.Comment, &operation.Type, &operation.CreatedAt, &operation.UpdatedAt)
-		if err != nil {
-			return nil, fmt.Errorf("%s: %w", fn, err)
-		}
-		operations = append(operations, operation)
+	var operations []domain.Operation
+	result := s.db.Where("user_id = ?", userID).Find(&operations)
+	if result.Error != nil {
+		return nil, fmt.Errorf("%s: %w", fn, result.Error)
 	}
 
 	return operations, nil
 }
 
-func (s *Storage) DeleteOperation(id string) error {
+func (s *Storage) DeleteOperation(id uuid.UUID) error {
 	const fn = "storage.postgresql.DeleteOperation"
 
-	query := `SELECT * FROM operations WHERE id = $1`
-	fmt.Println("id", id)
-	row := s.db.QueryRow(query, id).Scan()
-	if row != nil {
-		return fmt.Errorf("%s: %w", fn, row)
+	// First check if operation exists
+	var operation domain.Operation
+	result := s.db.Where("id = ?", id).First(&operation)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return fmt.Errorf("%s: operation not found", fn)
+		}
+		return fmt.Errorf("%s: %w", fn, result.Error)
 	}
 
-	query = `DELETE FROM operations WHERE id = $1`
-	_, err := s.db.Exec(query, id)
-	if err != nil {
-		return fmt.Errorf("%s: %w", fn, err)
+	// Delete the operation (soft delete due to gorm.DeletedAt in BaseEntity)
+	result = s.db.Delete(&operation)
+	if result.Error != nil {
+		return fmt.Errorf("%s: %w", fn, result.Error)
 	}
 
 	return nil

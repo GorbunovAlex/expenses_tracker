@@ -1,116 +1,135 @@
 package postgres
 
 import (
-	"alex_gorbunov_exptr_api/internal/models"
+	"errors"
 	"fmt"
 	"time"
+
+	"alex_gorbunov_exptr_api/internal/domain"
+
+	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
-func (s *Storage) CreateUser(user *models.User) error {
+func (s *Storage) CreateUser(user *domain.User) error {
 	const fn = "storage.postgresql.CreateUser"
 
-	query := `INSERT INTO users (email, password, created_at, updated_at) VALUES ($1, $2, $3, $4)`
-	_, err := s.db.Exec(query, user.Email, user.Password, user.CreatedAt, user.UpdatedAt)
-	if err != nil {
-		return fmt.Errorf("%s: %w", fn, err)
+	result := s.db.Create(user)
+	if result.Error != nil {
+		return fmt.Errorf("%s: %w", fn, result.Error)
 	}
 
 	return nil
 }
 
-func (s *Storage) GetUserByEmail(email string) (*models.User, error) {
+func (s *Storage) GetUserByEmail(email string) (*domain.User, error) {
 	const fn = "storage.postgresql.GetUserByEmail"
 
-	query := `SELECT id, email, password, created_at, updated_at FROM users WHERE email = $1`
-	user := &models.User{}
-	err := s.db.QueryRow(query, email).Scan(&user.ID, &user.Email, &user.Password, &user.CreatedAt, &user.UpdatedAt)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", fn, err)
+	var user domain.User
+	result := s.db.Where("email = ?", email).First(&user)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("%s: user not found", fn)
+		}
+		return nil, fmt.Errorf("%s: %w", fn, result.Error)
 	}
 
-	return user, nil
+	return &user, nil
 }
 
-func (s *Storage) SetUserSession(userID int, token string) error {
-	const fn = "storage.postgresql.setUserSession"
+func (s *Storage) SetUserSession(userID uuid.UUID, token string) error {
+	const fn = "storage.postgresql.SetUserSession"
 
-	_, err := s.GetUserSession(userID)
-	fmt.Println(err)
-	if err == nil {
-		query := `UPDATE users_sessions SET token = $1, created_date = $2 WHERE user_id = $3`
-		_, err = s.db.Exec(query, token, time.Now(), userID)
-		if err != nil {
+	var session domain.UserSession
+	result := s.db.Where("user_id = ?", userID).First(&session)
+
+	if result.Error == nil {
+		// Session exists, update it
+		session.Token = token
+		session.BaseEntity.UpdatedAt = time.Now()
+		if err := s.db.Save(&session).Error; err != nil {
 			return fmt.Errorf("%s: %w", fn, err)
 		}
 		return nil
 	}
 
-	query := `INSERT INTO users_sessions (user_id, created_date, token) VALUES ($1, $2, $3)`
-	_, err = s.db.Exec(query, userID, time.Now(), token)
-	if err != nil {
+	if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return fmt.Errorf("%s: %w", fn, result.Error)
+	}
+
+	// Session doesn't exist, create new one
+	newSession := domain.UserSession{
+		UserID: userID,
+		Token:  token,
+	}
+
+	if err := s.db.Create(&newSession).Error; err != nil {
 		return fmt.Errorf("%s: %w", fn, err)
 	}
 
 	return nil
 }
 
-func (s *Storage) UpdateUserSession(userID int, token string) error {
-	const fn = "storage.postgresql.updateUserSession"
+func (s *Storage) UpdateUserSession(userID uuid.UUID, token string) error {
+	const fn = "storage.postgresql.UpdateUserSession"
 
-	query := `UPDATE users_sessions SET token = $1 WHERE user_id = $2`
-	_, err := s.db.Exec(query, token, userID)
-	if err != nil {
-		return fmt.Errorf("%s: %w", fn, err)
+	result := s.db.Model(&domain.UserSession{}).Where("user_id = ?", userID).Update("token", token)
+	if result.Error != nil {
+		return fmt.Errorf("%s: %w", fn, result.Error)
 	}
 
 	return nil
 }
 
-func (s *Storage) GetUserIDByToken(token string) (int, error) {
-	const fn = "storage.postgresql.getUserSessionByToken"
+func (s *Storage) GetUserIDByToken(token string) (*string, error) {
+	const fn = "storage.postgresql.GetUserIDByToken"
 
-	query := `SELECT user_id FROM users_sessions WHERE token = $1`
-	var userID int
-	err := s.db.QueryRow(query, token).Scan(&userID)
-	if err != nil {
-		return 0, fmt.Errorf("%s: %w", fn, err)
+	var session domain.UserSession
+	result := s.db.Where("token = ?", token).First(&session)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("%s: session not found", fn)
+		}
+		return nil, fmt.Errorf("%s: %w", fn, result.Error)
 	}
 
-	return userID, nil
+	userID := session.UserID.String()
+	return &userID, nil
 }
 
-func (s *Storage) GetUserSession(userID int) (int, error) {
-	const fn = "storage.postgresql.getUserSession"
+func (s *Storage) GetUserSession(userID uuid.UUID) (*uuid.UUID, error) {
+	const fn = "storage.postgresql.GetUserSession"
 
-	query := `SELECT id FROM users_sessions WHERE user_id = $1`
-	var sessionID int
-	err := s.db.QueryRow(query, userID).Scan(&sessionID)
-	if err != nil {
-		return 0, fmt.Errorf("%s: %w", fn, err)
+	var session domain.UserSession
+	result := s.db.Where("user_id = ?", userID).First(&session)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("%s: session not found", fn)
+		}
+		return nil, fmt.Errorf("%s: %w", fn, result.Error)
 	}
 
-	return sessionID, nil
+	return &session.ID, nil
 }
 
-func (s *Storage) DeleteUserSession(userID int) error {
-	const fn = "storage.postgresql.deleteUserSession"
+func (s *Storage) DeleteUserSession(userID uuid.UUID) error {
+	const fn = "storage.postgresql.DeleteUserSession"
 
-	query := `DELETE FROM users_sessions WHERE user_id = $1`
-	_, err := s.db.Exec(query, userID)
-	if err != nil {
-		return fmt.Errorf("%s: %w", fn, err)
+	result := s.db.Where("user_id = ?", userID).Delete(&domain.UserSession{})
+	if result.Error != nil {
+		return fmt.Errorf("%s: %w", fn, result.Error)
 	}
 
 	return nil
 }
 
 func (s *Storage) DeleteOutdatedSessions() error {
-	const fn = "storage.postgresql.deleteOutdatedSessions"
+	const fn = "storage.postgresql.DeleteOutdatedSessions"
 
-	query := `DELETE FROM users_sessions WHERE created_date < $1`
-	_, err := s.db.Exec(query, time.Now().Add(-time.Hour*1))
-	if err != nil {
-		return fmt.Errorf("%s: %w", fn, err)
+	cutoff := time.Now().Add(-time.Hour * 1)
+	result := s.db.Where("created_at < ?", cutoff).Delete(&domain.UserSession{})
+	if result.Error != nil {
+		return fmt.Errorf("%s: %w", fn, result.Error)
 	}
 
 	return nil

@@ -1,71 +1,101 @@
 package postgres
 
 import (
-	"alex_gorbunov_exptr_api/internal/models"
+	"errors"
 	"fmt"
+
+	"alex_gorbunov_exptr_api/internal/domain"
+	"alex_gorbunov_exptr_api/internal/models"
+
+	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 func (s *Storage) CreateCategory(category *models.CategoryRequest) error {
 	const fn = "storage.postgresql.CreateCategory"
 
-	query := `INSERT INTO categories (user_id, name, type, created_at, updated_at, color, icon) VALUES ($1, $2, $3, $4, $5, $6, $7)`
-	_, err := s.db.Exec(query, category.UserID, category.Name, category.Type, category.CreatedAt, category.UpdatedAt, category.Color, category.Icon)
-	if err != nil {
-		return fmt.Errorf("%s: %w", fn, err)
+	cat := domain.Category{
+		UserID: uuid.MustParse(category.UserID),
+		Name:   category.Name,
+		Type:   category.Type,
+		Color:  category.Color,
+		Icon:   category.Icon,
+	}
+
+	result := s.db.Create(&cat)
+	if result.Error != nil {
+		return fmt.Errorf("%s: %w", fn, result.Error)
 	}
 
 	return nil
 }
 
-func (s *Storage) UpdateCategory(category *models.Category) error {
+func (s *Storage) UpdateCategory(category *domain.Category) error {
 	const fn = "storage.postgresql.UpdateCategory"
 
-	query := `UPDATE categories SET user_id = $1, name = $2, type = $3, updated_at = $4, color = $5, icon = $6 WHERE id = $7`
-	_, err := s.db.Exec(query, category.UserID, category.Name, category.Type, category.UpdatedAt, category.Color, category.Icon, category.ID)
-	if err != nil {
-		return fmt.Errorf("%s: %w", fn, err)
+	result := s.db.Model(&domain.Category{}).Where("id = ?", category.ID).Updates(map[string]interface{}{
+		"user_id": category.UserID,
+		"name":    category.Name,
+		"type":    category.Type,
+		"color":   category.Color,
+		"icon":    category.Icon,
+	})
+
+	if result.Error != nil {
+		return fmt.Errorf("%s: %w", fn, result.Error)
+	}
+
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("%s: category not found", fn)
 	}
 
 	return nil
 }
 
-func (s *Storage) GetCategories(userID int) ([]models.Category, error) {
+func (s *Storage) GetCategories(userID uuid.UUID) ([]domain.Category, error) {
 	const fn = "storage.postgresql.GetCategories"
 
-	query := `SELECT id, user_id, name, type, created_at, updated_at, color, icon FROM categories WHERE user_id = $1`
-	rows, err := s.db.Query(query, userID)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", fn, err)
-	}
-	defer rows.Close()
-
-	var categories []models.Category
-	for rows.Next() {
-		var category models.Category
-		err := rows.Scan(&category.ID, &category.UserID, &category.Name, &category.Type, &category.CreatedAt, &category.UpdatedAt, &category.Color, &category.Icon)
-		if err != nil {
-			return nil, fmt.Errorf("%s: %w", fn, err)
-		}
-		categories = append(categories, category)
+	var categories []domain.Category
+	result := s.db.Where("user_id = ?", userID).Find(&categories)
+	if result.Error != nil {
+		return nil, fmt.Errorf("%s: %w", fn, result.Error)
 	}
 
 	return categories, nil
 }
 
-func (s *Storage) DeleteCategory(id int) error {
-	const fn = "storage.postgresql.DeleteCategory"
+func (s *Storage) GetCategoryByID(id uuid.UUID) (*domain.Category, error) {
+	const fn = "storage.postgresql.GetCategoryByID"
 
-	query := `SELECT * FROM categories WHERE id = $1`
-	fmt.Println("id", id)
-	row := s.db.QueryRow(query, id).Scan()
-	if row != nil {
-		return fmt.Errorf("%s: %w", fn, row)
+	var category domain.Category
+	result := s.db.Where("id = ?", id).First(&category)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("%s: category not found", fn)
+		}
+		return nil, fmt.Errorf("%s: %w", fn, result.Error)
 	}
 
-	query = `DELETE FROM categories WHERE id = $1`
-	_, err := s.db.Exec(query, id)
-	if err != nil {
-		return fmt.Errorf("%s: %w", fn, err)
+	return &category, nil
+}
+
+func (s *Storage) DeleteCategory(id uuid.UUID) error {
+	const fn = "storage.postgresql.DeleteCategory"
+
+	// First check if category exists
+	var category domain.Category
+	result := s.db.Where("id = ?", id).First(&category)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return fmt.Errorf("%s: category not found", fn)
+		}
+		return fmt.Errorf("%s: %w", fn, result.Error)
+	}
+
+	// Delete the category (soft delete due to gorm.DeletedAt in BaseEntity)
+	result = s.db.Delete(&category)
+	if result.Error != nil {
+		return fmt.Errorf("%s: %w", fn, result.Error)
 	}
 
 	return nil

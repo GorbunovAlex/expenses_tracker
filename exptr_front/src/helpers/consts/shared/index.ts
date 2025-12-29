@@ -1,1 +1,0 @@
-export { PAGE_LINKS, PAGE_ACTIONS } from './page';

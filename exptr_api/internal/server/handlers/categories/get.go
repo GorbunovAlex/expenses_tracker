@@ -1,19 +1,22 @@
 package categories
 
 import (
-	"alex_gorbunov_exptr_api/internal/lib/api/response"
-	"alex_gorbunov_exptr_api/internal/lib/logger/sl"
-	"alex_gorbunov_exptr_api/internal/models"
 	"log/slog"
 	"net/http"
 
+	"alex_gorbunov_exptr_api/internal/domain"
+	"alex_gorbunov_exptr_api/internal/lib/api/response"
+	"alex_gorbunov_exptr_api/internal/lib/logger/sl"
+	"alex_gorbunov_exptr_api/internal/models"
+	"alex_gorbunov_exptr_api/internal/server/middleware/token"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-chi/render"
+	"github.com/google/uuid"
 )
 
 type GetCategoriesHandler interface {
-	GetCategories(userID int) ([]models.Category, error)
-	GetUserIDByToken(token string) (int, error)
+	GetCategories(userID uuid.UUID) ([]domain.Category, error)
 }
 
 // GetAll godoc
@@ -28,15 +31,23 @@ type GetCategoriesHandler interface {
 // @Router       /categories/ [get]
 func GetAll(log *slog.Logger, getAllCategoriesHandler GetCategoriesHandler) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		const op = "handlers.categories.get.GetCategories"
+		const fn = "handlers.categories.get.GetCategories"
+		log = log.With(slog.String("fn", fn))
 
 		r := c.Request
 		w := c.Writer
 
-		token := r.Header.Get("Bearer")
-		userID, err := getAllCategoriesHandler.GetUserIDByToken(token)
+		userIDStr, ok := token.GetUserIDFromContext(c)
+		if !ok {
+			log.Error("failed to get user id from context")
+			w.WriteHeader(http.StatusUnauthorized)
+			render.JSON(w, r, response.Error("unauthorized"))
+			return
+		}
+
+		userID, err := uuid.Parse(userIDStr)
 		if err != nil {
-			log.Error("failed to get user id by token", sl.Error(err))
+			log.Error("failed to parse user id", sl.Error(err))
 			w.WriteHeader(http.StatusBadRequest)
 			render.JSON(w, r, response.Error("server error"))
 			return

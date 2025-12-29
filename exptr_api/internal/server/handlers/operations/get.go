@@ -1,19 +1,22 @@
 package operations
 
 import (
-	"alex_gorbunov_exptr_api/internal/lib/api/response"
-	"alex_gorbunov_exptr_api/internal/lib/logger/sl"
-	"alex_gorbunov_exptr_api/internal/models"
 	"log/slog"
 	"net/http"
 
+	"alex_gorbunov_exptr_api/internal/domain"
+	"alex_gorbunov_exptr_api/internal/lib/api/response"
+	"alex_gorbunov_exptr_api/internal/lib/logger/sl"
+	"alex_gorbunov_exptr_api/internal/models"
+	"alex_gorbunov_exptr_api/internal/server/middleware/token"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-chi/render"
+	"github.com/google/uuid"
 )
 
 type GetOperationHandler interface {
-	GetOperationsByUserID(userID int) ([]models.Operation, error)
-	GetUserIDByToken(token string) (int, error)
+	GetOperationsByUserID(userID uuid.UUID) ([]domain.Operation, error)
 }
 
 // GetAll godoc
@@ -33,16 +36,23 @@ func GetAll(log *slog.Logger, getAllOperationHandler GetOperationHandler) gin.Ha
 		r := c.Request
 		w := c.Writer
 
-		token := r.Header.Get("Bearer")
-		userID, err := getAllOperationHandler.GetUserIDByToken(token)
+		userIDStr, ok := token.GetUserIDFromContext(c)
+		if !ok {
+			log.Error("failed to get user id from context")
+			w.WriteHeader(http.StatusUnauthorized)
+			render.JSON(w, r, response.Error("unauthorized"))
+			return
+		}
+
+		targetUserId, err := uuid.Parse(userIDStr)
 		if err != nil {
-			log.Error("failed to get user id by token", sl.Error(err))
+			log.Error("failed to parse user id", sl.Error(err))
 			w.WriteHeader(http.StatusBadRequest)
 			render.JSON(w, r, response.Error("server error"))
 			return
 		}
 
-		operations, err := getAllOperationHandler.GetOperationsByUserID(userID)
+		operations, err := getAllOperationHandler.GetOperationsByUserID(targetUserId)
 		if err != nil {
 			log.Error("failed to get all operations", sl.Error(err))
 			w.WriteHeader(http.StatusInternalServerError)

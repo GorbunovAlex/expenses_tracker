@@ -1,0 +1,172 @@
+@import "tailwindcss";
+
+/*
+ * ============================================================================
+ * ARCTIC GLACIAL THEME - shadcn/ui Design System
+ * ============================================================================
+ * A high-contrast, clean, and professional UI inspired by aerial glacial
+ * photography. Focuses on "Arctic White" surfaces with "Deep Cerulean" depth
+ * and "Glacial Teal" interactive elements.
+ * ============================================================================
+ */
+
+@theme inline {
+    /* Arctic Glacial Color Palette */
+    --color-glacial-teal: #0fb5b3;
+    --color-deep-cerulean: #006d80;
+    --color-arctic-white: #f7f9fb;
+    --color-abyssal-black: #04070b;
+    --color-ice: #d0e8ed;
+
+    /* Base Colors */
+    --color-background: var(--color-arctic-white);
+    --color-foreground: var(--color-abyssal-black);
+
+    /* Card */
+    --color-card: var(--color-arctic-white);
+    --color-card-foreground: var(--color-abyssal-black);
+
+    /* Popover */
+    --color-popover: #ffffff;
+    --color-popover-foreground: var(--color-abyssal-black);
+
+    /* Primary - Glacial Teal for CTAs, buttons, active states */
+    --color-primary: var(--color-glacial-teal);
+    --color-primary-foreground: #ffffff;
+
+    /* Secondary - Deep Cerulean for navigation, links, footer */
+    --color-secondary: var(--color-deep-cerulean);
+    --color-secondary-foreground: #ffffff;
+
+    /* Muted */
+    --color-muted: var(--color-ice);
+    --color-muted-foreground: #64748b;
+
+    /* Accent */
+    --color-accent: var(--color-ice);
+    --color-accent-foreground: var(--color-deep-cerulean);
+
+    /* Destructive */
+    --color-destructive: #dc2626;
+    --color-destructive-foreground: #ffffff;
+
+    /* Border - Ice for borders, dividers */
+    --color-border: var(--color-ice);
+
+    /* Input */
+    --color-input: var(--color-ice);
+
+    /* Ring - Glacial Teal for focus rings */
+    --color-ring: var(--color-glacial-teal);
+
+    /* Chart Colors */
+    --color-chart-1: var(--color-glacial-teal);
+    --color-chart-2: var(--color-deep-cerulean);
+    --color-chart-3: #38bdf8;
+    --color-chart-4: #2dd4bf;
+    --color-chart-5: #a5f3fc;
+
+    /* Border Radius - Sharp corners per spec (4px) */
+    --radius-sm: 0.125rem;
+    --radius-md: 0.25rem;
+    --radius-lg: 0.25rem;
+    --radius-xl: 0.375rem;
+
+    /* Shadows - Soft teal-tinted */
+    --shadow-sm: 0 1px 2px rgba(0, 109, 128, 0.05);
+    --shadow-md:
+        0 1px 3px rgba(0, 109, 128, 0.08), 0 2px 8px rgba(0, 109, 128, 0.08);
+    --shadow-lg:
+        0 4px 6px rgba(0, 109, 128, 0.08), 0 8px 16px rgba(0, 109, 128, 0.1);
+    --shadow-xl:
+        0 10px 15px rgba(0, 109, 128, 0.1), 0 4px 6px rgba(0, 109, 128, 0.05);
+
+    /* Sidebar */
+    --color-sidebar: var(--color-deep-cerulean);
+    --color-sidebar-foreground: #ffffff;
+    --color-sidebar-primary: var(--color-glacial-teal);
+    --color-sidebar-primary-foreground: #ffffff;
+    --color-sidebar-accent: rgba(255, 255, 255, 0.1);
+    --color-sidebar-accent-foreground: #ffffff;
+    --color-sidebar-border: rgba(208, 232, 237, 0.2);
+    --color-sidebar-ring: var(--color-glacial-teal);
+}
+
+/*
+ * Dark Mode
+ */
+.dark {
+    --color-background: var(--color-abyssal-black);
+    --color-foreground: var(--color-arctic-white);
+
+    --color-card: #0d1117;
+    --color-card-foreground: var(--color-arctic-white);
+
+    --color-popover: #0d1117;
+    --color-popover-foreground: var(--color-arctic-white);
+
+    --color-muted: #1e293b;
+    --color-muted-foreground: #94a3b8;
+
+    --color-accent: #1e293b;
+    --color-accent-foreground: var(--color-glacial-teal);
+
+    --color-border: rgba(208, 232, 237, 0.15);
+    --color-input: rgba(208, 232, 237, 0.15);
+
+    --color-sidebar: #0d1117;
+    --color-sidebar-border: rgba(208, 232, 237, 0.1);
+}
+
+/*
+ * Base Styles
+ */
+@layer base {
+    *,
+    *::before,
+    *::after {
+        @apply border-border;
+    }
+
+    html {
+        @apply scroll-smooth;
+    }
+
+    body {
+        @apply bg-background text-foreground antialiased;
+        font-feature-settings:
+            "rlig" 1,
+            "calt" 1;
+    }
+
+    /* Selection - Glacial Teal */
+    ::selection {
+        @apply bg-primary text-primary-foreground;
+    }
+
+    ::-moz-selection {
+        @apply bg-primary text-primary-foreground;
+    }
+
+    /* Focus visible */
+    :focus-visible {
+        @apply outline-2 outline-offset-2 outline-ring;
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+        @apply w-2 h-2;
+    }
+
+    ::-webkit-scrollbar-track {
+        @apply bg-muted;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        @apply bg-border rounded-full;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        @apply bg-primary;
+    }
+}
