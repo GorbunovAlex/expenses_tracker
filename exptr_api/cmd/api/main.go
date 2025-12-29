@@ -1,14 +1,15 @@
 package main
 
 import (
+	"log/slog"
+	"net/http"
+	"os"
+
 	"alex_gorbunov_exptr_api/internal/config"
 	"alex_gorbunov_exptr_api/internal/lib/crons"
 	"alex_gorbunov_exptr_api/internal/lib/logger/sl"
 	"alex_gorbunov_exptr_api/internal/server/router"
 	"alex_gorbunov_exptr_api/internal/storage/postgres"
-	"log/slog"
-	"net/http"
-	"os"
 
 	"github.com/robfig/cron/v3"
 )

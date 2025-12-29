@@ -8,14 +8,14 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-chi/render"
+	"github.com/google/uuid"
 )
 
 type UpdateOperationHandler interface {
-	UpdateOperation(id int, operation *models.OperationRequest) error
+	UpdateOperation(id uuid.UUID, operation *models.OperationRequest) error
 }
 
 // UpdateOperation godoc
@@ -44,11 +44,11 @@ func Update(log *slog.Logger, updateOperationHandler UpdateOperationHandler) gin
 			return
 		}
 
-		id, err := strconv.Atoi(param)
+		id, err := uuid.Parse(param)
 		if err != nil {
-			log.Error("failed to convert id", sl.Error(err))
-			w.WriteHeader(http.StatusInternalServerError)
-			render.JSON(w, r, response.Error("server error"))
+			log.Error("invalid id format", sl.Error(err))
+			w.WriteHeader(http.StatusBadRequest)
+			render.JSON(w, r, response.Error("invalid id format"))
 			return
 		}
 

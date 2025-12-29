@@ -1,21 +1,31 @@
 package categories
 
 import (
-	"alex_gorbunov_exptr_api/internal/lib/api/response"
-	"alex_gorbunov_exptr_api/internal/lib/logger/sl"
-	"alex_gorbunov_exptr_api/internal/models"
 	"errors"
 	"io"
 	"log/slog"
 	"net/http"
 
+	"alex_gorbunov_exptr_api/internal/domain"
+	"alex_gorbunov_exptr_api/internal/lib/api/response"
+	"alex_gorbunov_exptr_api/internal/lib/logger/sl"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-chi/render"
 	"github.com/go-playground/validator"
+	"github.com/google/uuid"
 )
 
+type CategoryRequest struct {
+	UserID string `json:"user_id"`
+	Name   string `json:"name"`
+	Type   string `json:"type"`
+	Color  string `json:"color"`
+	Icon   string `json:"icon"`
+}
+
 type UpdateCategoryHandler interface {
-	UpdateCategory(category *models.Category) error
+	UpdateCategory(category *domain.Category) error
 }
 
 // Update godoc
@@ -36,7 +46,7 @@ func Update(log *slog.Logger, updateCategoryHandler UpdateCategoryHandler) gin.H
 		r := c.Request
 		w := c.Writer
 
-		var req models.CategoryRequest
+		var req CategoryRequest
 
 		id := c.Param("id")
 		if id == "" {
@@ -73,17 +83,38 @@ func Update(log *slog.Logger, updateCategoryHandler UpdateCategoryHandler) gin.H
 			return
 		}
 
-		category := models.Category{
-			ID:        id,
-			UserID:    req.UserID,
-			Name:      req.Name,
-			Type:      req.Type,
-			CreatedAt: req.CreatedAt,
-			UpdatedAt: req.UpdatedAt,
+		targetUserUuid, err := uuid.Parse(req.UserID)
+		if err != nil {
+			validateErr := err.(validator.ValidationErrors)
+			log.Error("failed to validate", sl.Error(err))
+			w.WriteHeader(http.StatusBadRequest)
+			render.JSON(w, r, response.Error(validateErr.Error()))
+
+			return
+		}
+
+		targetCategoryUuid, err := uuid.Parse(id)
+		if err != nil {
+			validateErr := err.(validator.ValidationErrors)
+			log.Error("failed to validate", sl.Error(err))
+			w.WriteHeader(http.StatusBadRequest)
+			render.JSON(w, r, response.Error(validateErr.Error()))
+
+			return
+		}
+
+		category := domain.Category{
+			BaseEntity: domain.BaseEntity{
+				ID: targetCategoryUuid,
+			},
+			UserID: targetUserUuid,
+			Name:   req.Name,
+			Type:   req.Type,
+			Color:  req.Color,
+			Icon:   req.Icon,
 		}
 
 		err = updateCategoryHandler.UpdateCategory(&category)
-
 		if err != nil {
 			log.Error("failed to update category", sl.Error(err))
 			w.WriteHeader(http.StatusInternalServerError)

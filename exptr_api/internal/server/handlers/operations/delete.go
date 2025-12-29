@@ -8,10 +8,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-chi/render"
+	"github.com/google/uuid"
 )
 
 type DeleteOperationHandler interface {
-	DeleteOperation(id string) error
+	DeleteOperation(id uuid.UUID) error
 }
 
 // DeleteOperation godoc
@@ -40,7 +41,15 @@ func Delete(log *slog.Logger, deleteOperationHandler DeleteOperationHandler) gin
 			return
 		}
 
-		err := deleteOperationHandler.DeleteOperation(param)
+		id, err := uuid.Parse(param)
+		if err != nil {
+			log.Error("invalid id format", sl.Error(err))
+			w.WriteHeader(http.StatusBadRequest)
+			render.JSON(w, r, response.Error("invalid id format"))
+			return
+		}
+
+		err = deleteOperationHandler.DeleteOperation(id)
 		if err != nil {
 			log.Error("failed to delete operation", sl.Error(err))
 			w.WriteHeader(http.StatusInternalServerError)
