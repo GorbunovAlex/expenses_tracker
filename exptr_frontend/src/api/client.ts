@@ -1,7 +1,10 @@
-// =============================================================================
-// API Client
-// =============================================================================
+/**
+ * =============================================================================
+ * API Client (Axios)
+ * =============================================================================
+ */
 
+import axios, { AxiosError } from "axios";
 import { authEvents } from "@/lib/authEvents";
 import {
   ApiError,
@@ -20,15 +23,19 @@ import {
   type GetOperationsResponse,
 } from "@/types/api";
 
-// -----------------------------------------------------------------------------
-// Configuration
-// -----------------------------------------------------------------------------
+/**
+ * -----------------------------------------------------------------------------
+ * Configuration
+ * -----------------------------------------------------------------------------
+ */
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api/v1";
 
-// -----------------------------------------------------------------------------
-// Token Management
-// -----------------------------------------------------------------------------
+/**
+ * -----------------------------------------------------------------------------
+ * Token Management
+ * -----------------------------------------------------------------------------
+ */
 
 function getAuthToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -47,53 +54,102 @@ function removeAuthToken(): void {
   }
 }
 
-// -----------------------------------------------------------------------------
-// Base Request Function
-// -----------------------------------------------------------------------------
+/**
+ * -----------------------------------------------------------------------------
+ * Axios Instance
+ * -----------------------------------------------------------------------------
+ */
 
-async function request<T>(
-  endpoint: string,
-  options: RequestInit = {},
-): Promise<T> {
-  const token = getAuthToken();
-  const headers: HeadersInit = {
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
     "Content-Type": "application/json",
-    ...options.headers,
-  };
+  },
+});
 
+// Request: attach Authorization header if token exists
+api.interceptors.request.use((config) => {
+  const token = getAuthToken();
   if (token) {
-    (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
+    config.headers.set("Authorization", `Bearer ${token}`);
   }
+  return config;
+});
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
+// Response: handle 401 globally, normalize errors
+api.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError) => {
+    const status = error.response?.status;
 
-  if (!response.ok) {
-    // Handle 401 Unauthorized globally
-    if (response.status === 401) {
+    if (status === 401) {
       removeAuthToken();
       authEvents.emitUnauthorized();
     }
 
-    const errorText = await response.text();
-    throw new ApiError(response.status, errorText || "Request failed");
-  }
+    // Try to extract server-provided error message
+    let message = "Request failed";
+    if (error.response?.data) {
+      if (typeof error.response.data === "string") {
+        message = error.response.data;
+      } else if (
+        typeof error.response.data === "object" &&
+        error.response.data !== null
+      ) {
+        const maybeMsg =
+          (error.response.data as Record<string, unknown>).message ??
+          (error.response.data as Record<string, unknown>).error;
+        if (typeof maybeMsg === "string" && maybeMsg.trim().length > 0) {
+          message = maybeMsg;
+        }
+      }
+    } else if (error.message) {
+      message = error.message;
+    }
 
-  return response.json();
+    throw new ApiError(status ?? 0, message);
+  },
+);
+
+/**
+ * -----------------------------------------------------------------------------
+ * Base Request Helpers
+ * -----------------------------------------------------------------------------
+ */
+
+enum HttpMethod {
+  GET = "GET",
+  POST = "POST",
+  PUT = "PUT",
+  DELETE = "DELETE",
 }
 
-// -----------------------------------------------------------------------------
-// Auth API
-// -----------------------------------------------------------------------------
+async function request<T>(
+  method: HttpMethod,
+  endpoint: string,
+  data?: unknown,
+): Promise<T> {
+  const res = await api.request<T>({
+    method,
+    url: endpoint,
+    data,
+  });
+  return res.data;
+}
+
+/**
+ * -----------------------------------------------------------------------------
+ * Auth API
+ * -----------------------------------------------------------------------------
+ */
 
 export const authApi = {
   login: async (data: LoginRequest): Promise<LoginResponse> => {
-    const response = await request<LoginResponse>("/users/login", {
-      method: "POST",
-      body: JSON.stringify(data),
-    });
+    const response = await request<LoginResponse>(
+      HttpMethod.POST,
+      "/users/login",
+      data,
+    );
     if (response.token) {
       setAuthToken(response.token);
     }
@@ -101,10 +157,7 @@ export const authApi = {
   },
 
   signup: async (data: SignUpRequest): Promise<ApiResponse> => {
-    return request<ApiResponse>("/users/signup", {
-      method: "POST",
-      body: JSON.stringify(data),
-    });
+    return request<ApiResponse>(HttpMethod.POST, "/users/signup", data);
   },
 
   logout: (): void => {
@@ -116,72 +169,70 @@ export const authApi = {
   },
 };
 
-// -----------------------------------------------------------------------------
-// Categories API
-// -----------------------------------------------------------------------------
+/**
+ * -----------------------------------------------------------------------------
+ * Categories API
+ * -----------------------------------------------------------------------------
+ */
 
 export const categoriesApi = {
   getAll: async (): Promise<GetCategoriesResponse> => {
-    return request<GetCategoriesResponse>("/categories/");
+    return request<GetCategoriesResponse>(HttpMethod.GET, "/categories/");
   },
 
   create: async (data: CategoryRequest): Promise<CategoryResponse> => {
-    return request<CategoryResponse>("/categories/new", {
-      method: "POST",
-      body: JSON.stringify(data),
-    });
+    return request<CategoryResponse>(HttpMethod.POST, "/categories/new", data);
   },
 
   update: async (id: string, data: CategoryRequest): Promise<ApiResponse> => {
-    return request<ApiResponse>(`/categories/${id}`, {
-      method: "PUT",
-      body: JSON.stringify(data),
-    });
+    return request<ApiResponse>(HttpMethod.PUT, `/categories/${id}`, data);
   },
 
   delete: async (id: string): Promise<ApiResponse> => {
-    return request<ApiResponse>(`/categories/${id}`, {
-      method: "DELETE",
-    });
+    return request<ApiResponse>(HttpMethod.DELETE, `/categories/${id}`);
   },
 };
 
-// -----------------------------------------------------------------------------
-// Operations API
-// -----------------------------------------------------------------------------
+/**
+ * -----------------------------------------------------------------------------
+ * Operations API
+ * -----------------------------------------------------------------------------
+ */
 
 export const operationsApi = {
   getAll: async (): Promise<GetOperationsResponse> => {
-    return request<GetOperationsResponse>("/operations");
+    return request<GetOperationsResponse>(HttpMethod.GET, "/operations");
   },
 
   create: async (data: OperationRequest): Promise<CreateOperationResponse> => {
-    return request<CreateOperationResponse>("/operations/new", {
-      method: "POST",
-      body: JSON.stringify(data),
-    });
+    return request<CreateOperationResponse>(
+      HttpMethod.POST,
+      "/operations/new",
+      data,
+    );
   },
 
   update: async (
     id: string,
     data: Partial<OperationRequest>,
   ): Promise<UpdateOperationResponse> => {
-    return request<UpdateOperationResponse>(`/operations/${id}`, {
-      method: "PUT",
-      body: JSON.stringify(data),
-    });
+    return request<UpdateOperationResponse>(
+      HttpMethod.PUT,
+      `/operations/${id}`,
+      data,
+    );
   },
 
   delete: async (id: string): Promise<ApiResponse> => {
-    return request<ApiResponse>(`/operations/${id}`, {
-      method: "DELETE",
-    });
+    return request<ApiResponse>(HttpMethod.DELETE, `/operations/${id}`);
   },
 };
 
-// -----------------------------------------------------------------------------
-// Exports
-// -----------------------------------------------------------------------------
+/**
+ * -----------------------------------------------------------------------------
+ * Exports
+ * -----------------------------------------------------------------------------
+ */
 
 // Re-export types for backward compatibility
 export type {

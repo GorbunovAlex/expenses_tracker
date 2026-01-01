@@ -7,12 +7,15 @@ export {
   useAuthStore,
   useUser,
   useIsAuthenticated,
+  useHasHydrated,
 } from "./authStore";
 
 // Operations Store
 export {
   useOperationsStore,
   useOperations,
+  useOperationsLoading,
+  useOperationsError,
   useOperationsActions,
 } from "./operationsStore";
 
@@ -20,6 +23,8 @@ export {
 export {
   useCategoriesStore,
   useCategories,
+  useCategoriesLoading,
+  useCategoriesError,
   useCategoryActions,
 } from "./categoriesStore";
 
@@ -36,9 +41,4 @@ export {
 } from "./filtersStore";
 
 // UI Store
-export {
-  useUIStore,
-  useIsLoading,
-  useError,
-  useSidebarOpen,
-} from "./uiStore";
+export { useUIStore, useIsLoading, useError, useSidebarOpen } from "./uiStore";

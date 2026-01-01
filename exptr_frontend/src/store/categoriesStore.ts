@@ -1,4 +1,6 @@
 import { create } from "zustand";
+import { useShallow } from "zustand/react/shallow";
+import { categoriesApi } from "@/api/client";
 import type { Category } from "@/types/api";
 
 // -----------------------------------------------------------------------------
@@ -8,13 +10,20 @@ import type { Category } from "@/types/api";
 interface CategoriesState {
   // State
   categories: Category[];
+  isLoading: boolean;
+  error: string | null;
+  _isFetching: boolean; // Internal flag for deduplication
 
-  // Actions
+  // Async Actions (API)
+  fetchCategories: (options?: { force?: boolean }) => Promise<void>;
+
+  // Sync Actions
   setCategories: (categories: Category[]) => void;
   addCategory: (category: Category) => void;
   updateCategory: (id: string, updates: Partial<Category>) => void;
   removeCategory: (id: string) => void;
   clearCategories: () => void;
+  clearError: () => void;
 
   // Selectors
   getCategoryById: (id: string) => Category | undefined;
@@ -28,8 +37,40 @@ interface CategoriesState {
 export const useCategoriesStore = create<CategoriesState>()((set, get) => ({
   // Initial State
   categories: [],
+  isLoading: false,
+  error: null,
+  _isFetching: false,
 
-  // Actions
+  // Async Actions (API)
+  fetchCategories: async (options?: { force?: boolean }) => {
+    const force = options?.force ?? false;
+
+    // Deduplicate: if already fetching, don't start another request
+    if (get()._isFetching) {
+      return;
+    }
+
+    // Skip if we already have categories (unless force is true)
+    if (!force && get().categories.length > 0) {
+      return;
+    }
+
+    set({ isLoading: true, error: null, _isFetching: true });
+    try {
+      const response = await categoriesApi.getAll();
+      if (response.categories) {
+        set({ categories: response.categories });
+      }
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to fetch categories";
+      set({ error: message });
+    } finally {
+      set({ isLoading: false, _isFetching: false });
+    }
+  },
+
+  // Sync Actions
   setCategories: (categories) => set({ categories }),
 
   addCategory: (category) =>
@@ -49,7 +90,9 @@ export const useCategoriesStore = create<CategoriesState>()((set, get) => ({
       categories: state.categories.filter((cat) => cat.id !== id),
     })),
 
-  clearCategories: () => set({ categories: [] }),
+  clearCategories: () => set({ categories: [], _isFetching: false }),
+
+  clearError: () => set({ error: null }),
 
   // Selectors
   getCategoryById: (id) => {
@@ -70,11 +113,22 @@ export const useCategoriesStore = create<CategoriesState>()((set, get) => ({
 export const useCategories = () =>
   useCategoriesStore((state) => state.categories);
 
+export const useCategoriesLoading = () =>
+  useCategoriesStore((state) => state.isLoading);
+
+export const useCategoriesError = () =>
+  useCategoriesStore((state) => state.error);
+
+// Use shallow equality to prevent unnecessary re-renders when actions haven't changed
 export const useCategoryActions = () =>
-  useCategoriesStore((state) => ({
-    setCategories: state.setCategories,
-    addCategory: state.addCategory,
-    updateCategory: state.updateCategory,
-    removeCategory: state.removeCategory,
-    clearCategories: state.clearCategories,
-  }));
+  useCategoriesStore(
+    useShallow((state) => ({
+      fetchCategories: state.fetchCategories,
+      setCategories: state.setCategories,
+      addCategory: state.addCategory,
+      updateCategory: state.updateCategory,
+      removeCategory: state.removeCategory,
+      clearCategories: state.clearCategories,
+      clearError: state.clearError,
+    })),
+  );

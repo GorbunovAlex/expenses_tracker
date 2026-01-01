@@ -9,11 +9,13 @@ import type { AuthUser } from "@/types/api";
 interface AuthState {
   user: AuthUser | null;
   isAuthenticated: boolean;
+  _hasHydrated: boolean;
 
   // Actions
   setUser: (user: AuthUser | null) => void;
   login: (email: string, token: string) => void;
   logout: () => void;
+  setHasHydrated: (hasHydrated: boolean) => void;
 }
 
 // -----------------------------------------------------------------------------
@@ -26,6 +28,7 @@ export const useAuthStore = create<AuthState>()(
       // Initial State
       user: null,
       isAuthenticated: false,
+      _hasHydrated: false,
 
       // Actions
       setUser: (user) =>
@@ -49,6 +52,8 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: false,
         });
       },
+
+      setHasHydrated: (hasHydrated) => set({ _hasHydrated: hasHydrated }),
     }),
     {
       name: "exptr-auth-storage",
@@ -56,6 +61,10 @@ export const useAuthStore = create<AuthState>()(
         user: state.user,
         isAuthenticated: state.isAuthenticated,
       }),
+      onRehydrateStorage: () => (state) => {
+        // Called when hydration is complete
+        state?.setHasHydrated(true);
+      },
     },
   ),
 );
@@ -67,3 +76,4 @@ export const useAuthStore = create<AuthState>()(
 export const useUser = () => useAuthStore((state) => state.user);
 export const useIsAuthenticated = () =>
   useAuthStore((state) => state.isAuthenticated);
+export const useHasHydrated = () => useAuthStore((state) => state._hasHydrated);

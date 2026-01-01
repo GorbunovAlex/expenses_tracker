@@ -13,15 +13,9 @@ import { AuthGuard } from "@/components/auth";
 import { useAuthStore } from "@/store/authStore";
 import { useOperationsStore } from "@/store/operationsStore";
 import { useCategoriesStore } from "@/store/categoriesStore";
-import { useUIStore } from "@/store/uiStore";
 import { useFiltersStore } from "@/store/filtersStore";
 
-import {
-  operationsApi,
-  categoriesApi,
-  type Operation,
-  type OperationRequest,
-} from "@/api/client";
+import { type Operation, type OperationRequest } from "@/api/client";
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -41,29 +35,33 @@ function DashboardContent() {
 
   // Operations store
   const operations = useOperationsStore((state) => state.operations);
-  const setOperations = useOperationsStore((state) => state.setOperations);
-  const removeOperation = useOperationsStore((state) => state.removeOperation);
+  const operationsLoading = useOperationsStore((state) => state.isLoading);
+  const operationsError = useOperationsStore((state) => state.error);
+  const fetchOperations = useOperationsStore((state) => state.fetchOperations);
+  const createOperation = useOperationsStore((state) => state.createOperation);
+  const deleteOperation = useOperationsStore((state) => state.deleteOperation);
   const clearOperations = useOperationsStore((state) => state.clearOperations);
 
   // Categories store
   const categories = useCategoriesStore((state) => state.categories);
-  const setCategories = useCategoriesStore((state) => state.setCategories);
+  const categoriesLoading = useCategoriesStore((state) => state.isLoading);
+  const categoriesError = useCategoriesStore((state) => state.error);
+  const fetchCategories = useCategoriesStore((state) => state.fetchCategories);
   const clearCategories = useCategoriesStore((state) => state.clearCategories);
-
-  // UI store
-  const isLoading = useUIStore((state) => state.isLoading);
-  const setLoading = useUIStore((state) => state.setLoading);
-  const error = useUIStore((state) => state.error);
-  const setError = useUIStore((state) => state.setError);
-  const sidebarOpen = useUIStore((state) => state.sidebarOpen);
-  const toggleSidebar = useUIStore((state) => state.toggleSidebar);
 
   // Filters store
   const resetFilters = useFiltersStore((state) => state.resetFilters);
 
+  // UI state
+  const [sidebarOpen, setSidebarOpen] = React.useState(true);
+
   const [isAddDialogOpen, setIsAddDialogOpen] = React.useState(false);
   const [selectedOperation, setSelectedOperation] =
     React.useState<Operation | null>(null);
+
+  // Combined loading and error states
+  const isLoading = operationsLoading || categoriesLoading;
+  const error = operationsError || categoriesError;
 
   // Handle logout with cleanup
   const handleLogout = React.useCallback(() => {
@@ -75,32 +73,9 @@ function DashboardContent() {
 
   // Fetch data on mount
   React.useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const [opsResponse, catsResponse] = await Promise.all([
-          operationsApi.getAll(),
-          categoriesApi.getAll(),
-        ]);
-
-        if (opsResponse.operations) {
-          setOperations(opsResponse.operations);
-        }
-
-        if (catsResponse.categories) {
-          setCategories(catsResponse.categories);
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to fetch data");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchData();
-  }, [setOperations, setCategories, setLoading, setError]);
+    fetchOperations();
+    fetchCategories();
+  }, [fetchOperations, fetchCategories]);
 
   // Calculate statistics
   const stats = React.useMemo(() => {
@@ -132,14 +107,7 @@ function DashboardContent() {
   };
 
   const handleAddOperation = async (data: OperationRequest) => {
-    const response = await operationsApi.create(data);
-    if (response.status === "OK" || response.status === "success") {
-      // Refetch operations to get the new one with ID
-      const opsResponse = await operationsApi.getAll();
-      if (opsResponse.operations) {
-        setOperations(opsResponse.operations);
-      }
-    }
+    await createOperation(data);
   };
 
   const handleDeleteOperation = async (operation: Operation) => {
@@ -147,14 +115,7 @@ function DashboardContent() {
       return;
     }
 
-    try {
-      await operationsApi.delete(operation.id);
-      removeOperation(operation.id);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to delete transaction",
-      );
-    }
+    await deleteOperation(operation.id);
   };
 
   const handleEditOperation = (operation: Operation) => {
@@ -162,6 +123,8 @@ function DashboardContent() {
     // TODO: Open edit dialog
     console.log("Edit operation:", operation);
   };
+
+  const toggleSidebar = () => setSidebarOpen((prev) => !prev);
 
   return (
     <div className="flex min-h-screen bg-background">

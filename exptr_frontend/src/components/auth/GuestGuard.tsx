@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 
@@ -15,33 +15,59 @@ interface GuestGuardProps {
  */
 export function GuestGuard({ children, fallback }: GuestGuardProps) {
   const router = useRouter();
+  const hasRedirected = useRef(false);
+
+  // Select state individually to avoid unnecessary re-renders
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const [isChecking, setIsChecking] = useState(true);
+  const hasHydrated = useAuthStore((state) => state._hasHydrated);
 
   useEffect(() => {
-    // Small delay to allow hydration of persisted auth state
-    const checkAuth = () => {
-      if (isAuthenticated) {
-        router.replace("/");
-      } else {
-        setIsChecking(false);
-      }
-    };
+    // Wait for hydration to complete before making any routing decisions
+    if (!hasHydrated) {
+      return;
+    }
 
-    // Use a small timeout to ensure Zustand has hydrated from localStorage
-    const timeoutId = setTimeout(checkAuth, 50);
+    // Prevent duplicate redirects
+    if (hasRedirected.current) {
+      return;
+    }
 
-    return () => clearTimeout(timeoutId);
-  }, [isAuthenticated, router]);
+    // If authenticated after hydration, redirect to home
+    if (isAuthenticated) {
+      hasRedirected.current = true;
+      router.replace("/");
+    }
+  }, [hasHydrated, isAuthenticated, router]);
 
-  // Show loading state while checking authentication
-  if (isChecking) {
+  // Reset redirect flag if user becomes unauthenticated (e.g., after logout)
+  useEffect(() => {
+    if (!isAuthenticated) {
+      hasRedirected.current = false;
+    }
+  }, [isAuthenticated]);
+
+  // Show loading while waiting for hydration
+  if (!hasHydrated) {
     return (
       fallback || (
         <div className="flex min-h-screen items-center justify-center bg-background">
           <div className="text-center">
             <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
             <p className="text-muted-foreground">Loading...</p>
+          </div>
+        </div>
+      )
+    );
+  }
+
+  // Show loading while redirecting authenticated user
+  if (isAuthenticated) {
+    return (
+      fallback || (
+        <div className="flex min-h-screen items-center justify-center bg-background">
+          <div className="text-center">
+            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            <p className="text-muted-foreground">Redirecting...</p>
           </div>
         </div>
       )

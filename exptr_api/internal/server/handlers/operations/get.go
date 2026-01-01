@@ -44,7 +44,7 @@ func GetAll(log *slog.Logger, getAllOperationHandler GetOperationHandler) gin.Ha
 			return
 		}
 
-		targetUserId, err := uuid.Parse(userIDStr)
+		targetUserID, err := uuid.Parse(userIDStr)
 		if err != nil {
 			log.Error("failed to parse user id", sl.Error(err))
 			w.WriteHeader(http.StatusBadRequest)
@@ -52,7 +52,7 @@ func GetAll(log *slog.Logger, getAllOperationHandler GetOperationHandler) gin.Ha
 			return
 		}
 
-		operations, err := getAllOperationHandler.GetOperationsByUserID(targetUserId)
+		operations, err := getAllOperationHandler.GetOperationsByUserID(targetUserID)
 		if err != nil {
 			log.Error("failed to get all operations", sl.Error(err))
 			w.WriteHeader(http.StatusInternalServerError)

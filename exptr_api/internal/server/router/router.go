@@ -33,7 +33,7 @@ func Router(log *slog.Logger, storage *postgres.Storage) http.Handler {
 		auth.Use(token.TokenValidationMiddleware(log, storage))
 		{
 			auth.POST("/operations/new", operations.New(log, storage))
-			auth.GET("/operations/", operations.GetAll(log, storage))
+			auth.GET("/operations", operations.GetAll(log, storage))
 			auth.PUT("/operations/:id", operations.Update(log, storage))
 			auth.DELETE("/operations/:id", operations.Delete(log, storage))
 
